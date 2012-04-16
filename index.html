@@ -21,17 +21,25 @@
 			    empty: [4, 0]
 			});
 			
-			Crafty.sprite(32, "sprites_player.png", {
-				player: [0, 0],
+			Crafty.sprite("sprites_players.png", {
+				//player: [0, 0],
+				player: [0, 0, 32, 44],
 			    empty: [1, 0]
 			});
-		
+			
+
+			var frames = new Array(3)
+			for (a=0; a <3; a++)
+			frames[a] = new Array(2)
+			
+			frames
+						
 			var brick_array = new Array(19)
 			for (a=0; a <19; a++)
 			brick_array[a] = new Array(15)
 
 			function generateBricks (i, j) {
-				if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 30){
+				if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 47){
 					//fill Array, return true
 					brick_array[i][j] = 1;
 					return true;
@@ -66,13 +74,13 @@
 				for (var i = 0; i <= 18; i++) {
 					for (var j = 0; j <= 14; j++) {
 									
-						//create the wall around
+						//generate the wall around
 						if(generateWall(i, j)) { 
 						    Crafty.e("2D, DOM, solid, wall")
 						    .attr({ x: i * 32, y: j * 32, z: 2 })
 						}
 		
-						//create some bricks						
+						//create random bricks						
 						if (generateBricks(i,j)) 
 						{
 							var f = Crafty.e("2D, DOM, solid, brick, explodable")
@@ -108,28 +116,29 @@
 			       Ape: function() {
 			                //setup animations
 			                this.requires("SpriteAnimation, Collision")
-			                .animate("walk_left", 6, 3, 8)
-			                .animate("walk_right", 9, 3, 11)
-			                .animate("walk_up", 3, 3, 5)
-			                .animate("walk_down", 0, 3, 2)
-			                //change direction when a direction change event is received
+							.animate("walk_left", [[192,0],[224,0],[256,0]])
+			                .animate("walk_right", [[288,0],[320,0],[352,0]])
+			                .animate("walk_up", [[96,0],[128,0],[160,0]])
+			                .animate("walk_down", [[0,0],[32,0],[64,0]])
+			
+							//change direction when a direction change event is received
 			                .bind("NewDirection",
 			                    function (direction) {
 			                        if (direction.x < 0) {
 			                            if (!this.isPlaying("walk_left"))
-			                                this.stop().animate("walk_left", 10, 20);
+			                                this.stop().animate("walk_left", 15, 20);
 			                        }
 			                        if (direction.x > 0) {
 			                            if (!this.isPlaying("walk_right"))
-			                                this.stop().animate("walk_right", 10, 20);
+			                                this.stop().animate("walk_right", 15, 20);
 			                        }
 			                        if (direction.y < 0) {
 			                            if (!this.isPlaying("walk_up"))
-			                                this.stop().animate("walk_up", 10, 20);
+			                                this.stop().animate("walk_up", 15, 20);
 			                        }
 			                        if (direction.y > 0) {
 			                            if (!this.isPlaying("walk_down"))
-			                                this.stop().animate("walk_down", 10, 20);
+			                                this.stop().animate("walk_down", 15, 20);
 			                        }
 			                        if(!direction.x && !direction.y) {
 			                            this.stop();
@@ -137,7 +146,7 @@
 			                })
 			                // A rudimentary way to prevent the user from passing solid areas
 			                .bind('Moved', function(from) {
-			                    if(solidTest(direction.x, direction.y)){//this.hit('solid')
+			                    if(this.hit('solid')){//solidTest(direction.x, direction.y)
 			                        this.attr({x: from.x, y:from.y});
 			                    }
 			                }).onHit("fire", function() {
@@ -165,7 +174,7 @@
 				generateWorld();
 				
 				var player1 = Crafty.e("2D, DOM, Ape, player, LeftControls")
-		                .attr({ x: 32, y: 32, z: 6 })
+		                .attr({ x: 32*10, y: 32*3, z: 6 })
 		                .leftControls(1)
 		                .Ape();
 			
