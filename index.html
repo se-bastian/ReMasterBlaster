@@ -1,0 +1,137 @@
+<head>
+    <script type="text/javascript" src="crafty.js"></script>
+    <title>My Crafty Game</title>
+    <style>
+    body, html { margin:0; padding: 0; overflow:hidden; padding-top:50px; font-family:Arial; font-size:20px; background-color:#000; }
+    #cr-stage { margin:5px auto; color:white } 
+    </style>
+</head>
+<body>
+	<script>
+		window.onload = function () {
+			//start crafty
+			Crafty.init(608, 480);
+			//Crafty.canvas();
+			
+			//turn the sprite map into usable components
+			Crafty.sprite(32, "sprites.png", {
+				wall: [0, 0],
+				brick: [0, 1],
+				player: [0, 3],
+			    empty: [4, 0]
+			});
+
+			//method to generate the map
+			function generateWorld() {
+				//loop through all tiles
+				for (var i = 0; i < 19; i++) {
+					for (var j = 0; j < 15; j++) {
+									
+						//create the wall around
+						if(i === 0 || i === 18|| j === 0 || j === 14)
+						    Crafty.e("2D, DOM, solid, wall")
+						    .attr({ x: i * 32, y: j * 32, z: 2 })
+
+		
+						//create some bricks						
+						if (i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 30) 
+						{
+							var f = Crafty.e("2D, DOM, solid, brick, explodable")
+						           		.attr({ x: i * 32, y: j * 32, z: 3 })
+							            .bind('explode', function() {
+							                this.destroy();
+						  				});
+						}
+						
+					};
+				};
+			};	
+				
+				
+			//the loading screen that will display while our assets load
+		    Crafty.scene("loading", function () {
+		        //load takes an array of assets and a callback when complete
+		        Crafty.load(["sprite.png"], function () {
+		            Crafty.scene("main"); //when everything is loaded, run the main scene
+		        });
+
+		        //black background with some loading text
+		        Crafty.background("#337700");
+		        Crafty.e("2D, DOM, Text").attr({ w: 100, h: 20, x: 150, y: 120 })
+		                .text("Loading")
+		                .css({ "text-align": "center" });
+		    });
+
+		    //automatically play the loading scene
+		    Crafty.scene("loading");
+			
+			Crafty.c('Ape', {
+			       Ape: function() {
+			                //setup animations
+			                this.requires("SpriteAnimation, Collision")
+			                .animate("walk_left", 6, 3, 8)
+			                .animate("walk_right", 9, 3, 11)
+			                .animate("walk_up", 3, 3, 5)
+			                .animate("walk_down", 0, 3, 2)
+			                //change direction when a direction change event is received
+			                .bind("NewDirection",
+			                    function (direction) {
+			                        if (direction.x < 0) {
+			                            if (!this.isPlaying("walk_left"))
+			                                this.stop().animate("walk_left", 10, 20);
+			                        }
+			                        if (direction.x > 0) {
+			                            if (!this.isPlaying("walk_right"))
+			                                this.stop().animate("walk_right", 10, 20);
+			                        }
+			                        if (direction.y < 0) {
+			                            if (!this.isPlaying("walk_up"))
+			                                this.stop().animate("walk_up", 10, 20);
+			                        }
+			                        if (direction.y > 0) {
+			                            if (!this.isPlaying("walk_down"))
+			                                this.stop().animate("walk_down", 10, 20);
+			                        }
+			                        if(!direction.x && !direction.y) {
+			                            this.stop();
+			                        }
+			                })
+			                // A rudimentary way to prevent the user from passing solid areas
+			                .bind('Moved', function(from) {
+			                    if(this.hit('solid')){
+			                        this.attr({x: from.x, y:from.y});
+			                    }
+			                }).onHit("fire", function() {
+			                    this.destroy();
+			                });
+			            return this;
+			        }
+			    });
+			
+			Crafty.c("LeftControls", {
+		        init: function() {
+		            this.requires('Multiway');
+		        },
+
+		        leftControls: function(speed) {
+		            this.multiway(speed, {W: -90, S: 90, D: 0, A: 180})
+		            return this;
+		        }
+
+		    });
+			
+			//automatically play the loading scene
+			Crafty.scene("loading");
+			Crafty.scene("main", function () {
+				generateWorld();
+				
+				var player1 = Crafty.e("2D, DOM, Ape, player, LeftControls")
+		                .attr({ x: 32, y: 32, z: 6 })
+		                .leftControls(1)
+		                .Ape();
+			
+			});	
+		};
+	</script>
+</body>
+</html>
