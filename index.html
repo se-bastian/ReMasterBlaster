@@ -17,24 +17,63 @@
 			Crafty.sprite(32, "sprites.png", {
 				wall: [0, 0],
 				brick: [0, 1],
-				player: [0, 3],
+				//player: [0, 3],
 			    empty: [4, 0]
 			});
+			
+			Crafty.sprite(32, "sprites_player.png", {
+				player: [0, 0],
+			    empty: [1, 0]
+			});
+		
+			var brick_array = new Array(19)
+			for (a=0; a <19; a++)
+			brick_array[a] = new Array(15)
+
+			function generateBricks (i, j) {
+				if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 30){
+					//fill Array, return true
+					brick_array[i][j] = 1;
+					return true;
+				} else {
+					brick_array[i][j] = 0;
+					return false;
+				};
+			};
+			
+			function generateWall (i,j) {
+				if(i === 0 || i === 18|| j === 0 || j === 14){
+					brick_array[i][j] = 1;
+					return true;
+				} else {
+					return false;
+				}
+			};
+			
+			function solidTest (x, y) {
+				var xi = Math.round(x/19)
+				var yi = Math.round(y/15)
+				if (brick_array[xi][yi] == 1) {
+					return true;
+				} else {
+					return false;
+				}
+			};
 
 			//method to generate the map
 			function generateWorld() {
 				//loop through all tiles
-				for (var i = 0; i < 19; i++) {
-					for (var j = 0; j < 15; j++) {
+				for (var i = 0; i <= 18; i++) {
+					for (var j = 0; j <= 14; j++) {
 									
 						//create the wall around
-						if(i === 0 || i === 18|| j === 0 || j === 14)
+						if(generateWall(i, j)) { 
 						    Crafty.e("2D, DOM, solid, wall")
 						    .attr({ x: i * 32, y: j * 32, z: 2 })
-
+						}
 		
 						//create some bricks						
-						if (i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 30) 
+						if (generateBricks(i,j)) 
 						{
 							var f = Crafty.e("2D, DOM, solid, brick, explodable")
 						           		.attr({ x: i * 32, y: j * 32, z: 3 })
@@ -98,7 +137,7 @@
 			                })
 			                // A rudimentary way to prevent the user from passing solid areas
 			                .bind('Moved', function(from) {
-			                    if(this.hit('solid')){
+			                    if(solidTest(direction.x, direction.y)){//this.hit('solid')
 			                        this.attr({x: from.x, y:from.y});
 			                    }
 			                }).onHit("fire", function() {
