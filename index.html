@@ -38,7 +38,7 @@
 			brick_array[a] = new Array(15)
 
 			function generateBricks (i, j) {
-				if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 47){
+				if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 40){
 					//fill Array, return true
 					brick_array[i][j] = 1;
 					return true;
@@ -75,15 +75,18 @@
 
 						//generate the wall around
 						if(generateWall(i, j)) { 
-						    Crafty.e("2D, DOM, solid, wall")
+						    Crafty.e("2D, DOM, Mouse, solid, wall")
 						    .attr({ x: i * 32, y: j * 32, z: 2 })
+							.areaMap([0,0], [32,0], [32,32], [0,32])
+				          
 						}
 
 						//create random bricks						
 						if (generateBricks(i,j)) 
 						{
-							var f = Crafty.e("2D, DOM, solid, brick, explodable")
+							var f = Crafty.e("2D, DOM, Mouse, solid, brick, explodable")
 						           		.attr({ x: i * 32, y: j * 32, z: 3 })
+										.areaMap([0,0], [32,0], [32,32], [0,32])
 							            .bind('explode', function() {
 							                this.destroy();
 						  				});
@@ -200,10 +203,12 @@
 			Crafty.scene("main", function () {
 				generateWorld();
 
-				var player1 = Crafty.e("2D, DOM, Ape, player, LeftControls")
+				var player1 = Crafty.e("2D, DOM, Ape, player, Collision, LeftControls")
 		                .attr({ x: 32*10, y: 32*3, z: 6 })
-		                .leftControls(2)
+						.collision(new Crafty.polygon([0,44], [32,44], [32,15], [0, 15]))
+			            .leftControls(2)
 		                .Ape();
+	
 
 			});	
 		};
