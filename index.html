@@ -21,8 +21,9 @@
 			    empty: [4, 0]
 			});
 
-			Crafty.sprite("sprites_players.png", {
-				player: [0, 0, 32, 44],
+			Crafty.sprite("sprite_players.png", {
+				sprite_player_1: [0, 0, 32, 44],
+				sprite_player_2: [0, 44, 32, 88],
 			    empty: [1, 0]
 			});
 
@@ -115,49 +116,92 @@
 		    Crafty.scene("loading");
 
 			Crafty.c('Ape', {
-			       Ape: function() {
-			                //setup animations
-			                this.requires("SpriteAnimation, Collision")
-							.animate("walk_left", [[192,0],[224,0],[256,0]])
-			                .animate("walk_right", [[288,0],[320,0],[352,0]])
-			                .animate("walk_up", [[96,0],[128,0],[160,0]])
-			                .animate("walk_down", [[0,0],[32,0],[64,0]])
+					Ape: function() {
+		                //setup animations
+		                this.requires("SpriteAnimation, Collision")
+						.animate("walk_left", [[192,0],[224,0],[256,0]])
+		                .animate("walk_right", [[288,0],[320,0],[352,0]])
+		                .animate("walk_up", [[96,0],[128,0],[160,0]])
+		                .animate("walk_down", [[0,0],[32,0],[64,0]])
 
-							//change direction when a direction change event is received
-			                .bind("NewDirection",
-			                    function (direction) {
-			                        if (direction.x < 0) {
-			                            if (!this.isPlaying("walk_left"))
-			                                this.stop().animate("walk_left", 15, 20);
-			                        }
-			                        if (direction.x > 0) {
-			                            if (!this.isPlaying("walk_right"))
-			                                this.stop().animate("walk_right", 15, 20);
-			                        }
-			                        if (direction.y < 0) {
-			                            if (!this.isPlaying("walk_up"))
-			                                this.stop().animate("walk_up", 15, 20);
-			                        }
-			                        if (direction.y > 0) {
-			                            if (!this.isPlaying("walk_down"))
-			                                this.stop().animate("walk_down", 15, 20);
-			                        }
-			                        if(!direction.x && !direction.y) {
-			                            this.stop();
-			                        }
-			                })
-			                // A rudimentary way to prevent the user from passing solid areas
-			                .bind('Moved', function(from) {
-			                    if(this.hit('solid')){//solidTest(direction.x, direction.y)
-			                        this.attr({x: from.x, y:from.y});
-			                    }
-			                }).onHit("fire", function() {
-			                    this.destroy();
-			                });
-			            return this;
-			        }
-			    });
+						//change direction when a direction change event is received
+		                .bind("NewDirection",
+		                    function (direction) {
+		                        if (direction.x < 0) {
+		                            if (!this.isPlaying("walk_left"))
+		                                this.stop().animate("walk_left", 15, 20);
+		                        }
+		                        if (direction.x > 0) {
+		                            if (!this.isPlaying("walk_right"))
+		                                this.stop().animate("walk_right", 15, 20);
+		                        }
+		                        if (direction.y < 0) {
+		                            if (!this.isPlaying("walk_up"))
+		                                this.stop().animate("walk_up", 15, 20);
+		                        }
+		                        if (direction.y > 0) {
+		                            if (!this.isPlaying("walk_down"))
+		                                this.stop().animate("walk_down", 15, 20);
+		                        }
+		                        if(!direction.x && !direction.y) {
+		                            this.stop();
+		                        }
+		                })
+		                // A rudimentary way to prevent the user from passing solid areas
+		                .bind('Moved', function(from) {
+		                    if(this.hit('solid')){//solidTest(direction.x, direction.y)
+		                        this.attr({x: from.x, y:from.y});
+		                    }
+		                }).onHit("fire", function() {
+		                    this.destroy();
+		                });
+		            return this;
+		        }
+		    });
 			
+			Crafty.c('Ape2', {
+					Ape2: function() {
+		                //setup animations
+		                this.requires("SpriteAnimation, Collision")
+						.animate("walk_left", [[192,44],[224,44],[256,44]])
+		                .animate("walk_right", [[288,44],[320,44],[352,44]])
+		                .animate("walk_up", [[96,44],[128,44],[160,44]])
+		                .animate("walk_down", [[0,44],[32,44],[64,44]])
+
+						//change direction when a direction change event is received
+		                .bind("NewDirection",
+		                    function (direction) {
+		                        if (direction.x < 0) {
+		                            if (!this.isPlaying("walk_left"))
+		                                this.stop().animate("walk_left", 15, 20);
+		                        }
+		                        if (direction.x > 0) {
+		                            if (!this.isPlaying("walk_right"))
+		                                this.stop().animate("walk_right", 15, 20);
+		                        }
+		                        if (direction.y < 0) {
+		                            if (!this.isPlaying("walk_up"))
+		                                this.stop().animate("walk_up", 15, 20);
+		                        }
+		                        if (direction.y > 0) {
+		                            if (!this.isPlaying("walk_down"))
+		                                this.stop().animate("walk_down", 15, 20);
+		                        }
+		                        if(!direction.x && !direction.y) {
+		                            this.stop();
+		                        }
+		                })
+		                // A rudimentary way to prevent the user from passing solid areas
+		                .bind('Moved', function(from) {
+		                    if(this.hit('solid')){//solidTest(direction.x, direction.y)
+		                        this.attr({x: from.x, y:from.y});
+		                    }
+		                }).onHit("fire", function() {
+		                    this.destroy();
+		                });
+		            return this;
+		        }
+		    });
 			
 		    Crafty.c('Grid', {
 		        _cellSize: 32,
@@ -216,21 +260,21 @@
 			Crafty.scene("main", function () {
 				generateWorld();
 
-				var player1 = Crafty.e("2D, DOM, Ape,solid, player, Collision, LeftControls")
-		                .attr({ x: 32*10, y: 32*3, z: 6 })
+				var player1 = Crafty.e("2D, DOM, Ape,solid, sprite_player_1, Collision, LeftControls")
+		                .attr({ x: 32*1, y: 32*0.6, z: 6 })
 						//hitbox for player 
 						.collision(new Crafty.polygon([0,44], [32,44], [32,15], [0, 15]))
 						//Keyboard WSAD
 			            .leftControls(2)
 		                .Ape();
 					
-				var player2 = Crafty.e("2D, DOM, Ape, solid, player, Collision, RightControls")
-				        .attr({ x: 32*7, y: 32*7, z: 6 })
+				var player2 = Crafty.e("2D, DOM, Ape2, solid, sprite_player_2, Collision, RightControls")
+				        .attr({ x: 32*17, y: 32*12.6, z: 6 })
 						//hitbox for player 
 						.collision(new Crafty.polygon([0,44], [32,44], [32,15], [0, 15]))
 						//Keyboard Arrows up/down/left/right
 					    .rightControls(2)
-				        .Ape();
+				        .Ape2();
 
 
 		
