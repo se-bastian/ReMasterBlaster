@@ -22,7 +22,6 @@
 			});
 
 			Crafty.sprite("sprites_players.png", {
-				//player: [0, 0],
 				player: [0, 0, 32, 44],
 			    empty: [1, 0]
 			});
@@ -159,6 +158,7 @@
 			        }
 			    });
 			
+			
 		    Crafty.c('Grid', {
 		        _cellSize: 32,
 		        Grid: function(cellSize) {
@@ -198,20 +198,42 @@
 		        }
 
 		    });
+		
+		    Crafty.c("RightControls", {
+		        init: function() {
+		            this.requires('Multiway');
+		        },
 
+		        rightControls: function(speed) {
+		            this.multiway(speed, {UP_ARROW: -90, DOWN_ARROW: 90, RIGHT_ARROW: 0, LEFT_ARROW: 180})
+		            return this;
+		        }
+
+		    });
+		
 			//automatically play the loading scene
 			Crafty.scene("loading");
 			Crafty.scene("main", function () {
 				generateWorld();
 
-				var player1 = Crafty.e("2D, DOM, Ape, player, Collision, LeftControls")
+				var player1 = Crafty.e("2D, DOM, Ape,solid, player, Collision, LeftControls")
 		                .attr({ x: 32*10, y: 32*3, z: 6 })
 						//hitbox for player 
 						.collision(new Crafty.polygon([0,44], [32,44], [32,15], [0, 15]))
-						//Keyboard AWDS
+						//Keyboard WSAD
 			            .leftControls(2)
 		                .Ape();
-	
+					
+				var player2 = Crafty.e("2D, DOM, Ape, solid, player, Collision, RightControls")
+				        .attr({ x: 32*7, y: 32*7, z: 6 })
+						//hitbox for player 
+						.collision(new Crafty.polygon([0,44], [32,44], [32,15], [0, 15]))
+						//Keyboard Arrows up/down/left/right
+					    .rightControls(2)
+				        .Ape();
+
+
+		
 
 			});	
 		};
