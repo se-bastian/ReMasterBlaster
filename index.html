@@ -8,6 +8,7 @@
 </head>
 <body>
 	<script>
+		//test
 		window.onload = function () {
 			//start crafty
 			Crafty.init(608, 480);
@@ -205,7 +206,9 @@
 
 				var player1 = Crafty.e("2D, DOM, Ape, player, Collision, LeftControls")
 		                .attr({ x: 32*10, y: 32*3, z: 6 })
+						//hitbox for player 
 						.collision(new Crafty.polygon([0,44], [32,44], [32,15], [0, 15]))
+						//Keyboard AWDS
 			            .leftControls(2)
 		                .Ape();
 	
