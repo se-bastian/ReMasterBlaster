@@ -12,34 +12,33 @@
 			//start crafty
 			Crafty.init(608, 480);
 			//Crafty.canvas();
-			
+
 			//turn the sprite map into usable components
 			Crafty.sprite(32, "sprites.png", {
 				wall: [0, 0],
 				brick: [0, 1],
-				//player: [0, 3],
 			    empty: [4, 0]
 			});
-			
+
 			Crafty.sprite("sprites_players.png", {
 				//player: [0, 0],
 				player: [0, 0, 32, 44],
 			    empty: [1, 0]
 			});
-			
+
 
 			var frames = new Array(3)
 			for (a=0; a <3; a++)
 			frames[a] = new Array(2)
-			
+
 			frames
-						
+
 			var brick_array = new Array(19)
 			for (a=0; a <19; a++)
 			brick_array[a] = new Array(15)
 
 			function generateBricks (i, j) {
-				if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 47){
+				if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.math.randomInt(0, 50) > 40){
 					//fill Array, return true
 					brick_array[i][j] = 1;
 					return true;
@@ -48,7 +47,7 @@
 					return false;
 				};
 			};
-			
+
 			function generateWall (i,j) {
 				if(i === 0 || i === 18|| j === 0 || j === 14){
 					brick_array[i][j] = 1;
@@ -57,7 +56,7 @@
 					return false;
 				}
 			};
-			
+
 			function solidTest (x, y) {
 				var xi = Math.round(x/19)
 				var yi = Math.round(y/15)
@@ -73,28 +72,31 @@
 				//loop through all tiles
 				for (var i = 0; i <= 18; i++) {
 					for (var j = 0; j <= 14; j++) {
-									
+
 						//generate the wall around
 						if(generateWall(i, j)) { 
-						    Crafty.e("2D, DOM, solid, wall")
+						    Crafty.e("2D, DOM, Mouse, solid, wall")
 						    .attr({ x: i * 32, y: j * 32, z: 2 })
+							.areaMap([0,0], [32,0], [32,32], [0,32])
+				          
 						}
-		
+
 						//create random bricks						
 						if (generateBricks(i,j)) 
 						{
-							var f = Crafty.e("2D, DOM, solid, brick, explodable")
+							var f = Crafty.e("2D, DOM, Mouse, solid, brick, explodable")
 						           		.attr({ x: i * 32, y: j * 32, z: 3 })
+										.areaMap([0,0], [32,0], [32,32], [0,32])
 							            .bind('explode', function() {
 							                this.destroy();
 						  				});
 						}
-						
+
 					};
 				};
 			};	
-				
-				
+
+
 			//the loading screen that will display while our assets load
 		    Crafty.scene("loading", function () {
 		        //load takes an array of assets and a callback when complete
@@ -111,7 +113,7 @@
 
 		    //automatically play the loading scene
 		    Crafty.scene("loading");
-			
+
 			Crafty.c('Ape', {
 			       Ape: function() {
 			                //setup animations
@@ -120,7 +122,7 @@
 			                .animate("walk_right", [[288,0],[320,0],[352,0]])
 			                .animate("walk_up", [[96,0],[128,0],[160,0]])
 			                .animate("walk_down", [[0,0],[32,0],[64,0]])
-			
+
 							//change direction when a direction change event is received
 			                .bind("NewDirection",
 			                    function (direction) {
@@ -156,6 +158,34 @@
 			        }
 			    });
 			
+		    Crafty.c('Grid', {
+		        _cellSize: 32,
+		        Grid: function(cellSize) {
+		            if(cellSize) this._cellSize = cellSize;
+		            return this;
+		        },
+		        col: function(col) {
+		            if(arguments.length === 1) {
+		                this.x = this._cellSize * col;
+		                return this;
+		            } else {
+		                return Math.round(this.x / this._cellSize);
+		            }
+		        },
+		        row: function(row) {
+		            if(arguments.length === 1) {
+		                this.y = this._cellSize * row;
+		                return this;
+		            } else {
+		                return Math.round(this.y / this._cellSize);
+		            }
+		        },      
+		        snap: function(){
+		            this.x = Math.round(this.x/this._cellSize) * this._cellSize;
+		            this.y = Math.round(this.y/this._cellSize) * this._cellSize;
+		        }
+		    });
+		
 			Crafty.c("LeftControls", {
 		        init: function() {
 		            this.requires('Multiway');
@@ -167,17 +197,19 @@
 		        }
 
 		    });
-			
+
 			//automatically play the loading scene
 			Crafty.scene("loading");
 			Crafty.scene("main", function () {
 				generateWorld();
-				
-				var player1 = Crafty.e("2D, DOM, Ape, player, LeftControls")
+
+				var player1 = Crafty.e("2D, DOM, Ape, player, Collision, LeftControls")
 		                .attr({ x: 32*10, y: 32*3, z: 6 })
-		                .leftControls(1)
+						.collision(new Crafty.polygon([0,44], [32,44], [32,15], [0, 15]))
+			            .leftControls(2)
 		                .Ape();
-			
+	
+
 			});	
 		};
 	</script>
