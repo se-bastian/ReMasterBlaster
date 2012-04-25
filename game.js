@@ -46,7 +46,10 @@ window.onload = function() {
 		}
 	};
 	
-	
+	/**
+	 * Checks if the position of the player is on the Grid,
+	 * if not, it looks for the right position for the x-axis
+	 */
 	function xRelocator (x) {
 		var distX = x % 32;
 		var help = 0;
@@ -65,6 +68,10 @@ window.onload = function() {
 		}
 	}	
 
+	/**
+	 * Checks if the position of the player is on the Grid,
+	 * if not, it looks for the right position for the y-axis
+	 */
 	function yRelocator (y) {
 		var distY = y % 32;
 		var help = 0;
@@ -85,6 +92,7 @@ window.onload = function() {
 	
 	function solidDown (x, y) {
 		var xi = Math.round((x)/32);
+		var xii = (x/32)%10;
 		var yi = parseInt((y+44)/32);
 		if (brick_array[xi][yi] >= 1) {
 			return true;
@@ -94,7 +102,7 @@ window.onload = function() {
 	}
 	function solidUp (x, y) {
 		var xi = Math.round((x)/32);
-		var yi = parseInt((y+12)/32);
+		var yi = parseInt((y+11)/32);
 		if (brick_array[xi][yi] >= 1) {
 			return true;
 		} else {
@@ -205,7 +213,7 @@ window.onload = function() {
 						}
 					}
 					else if(move.down) {
-						if(!solidDown(this.x, this.y)){//!solid
+						if(!solidDown(this.x, this.y)){
 							var r = xRelocator (this.x);
 							this.x = r;
 							this.y += this._speed;
@@ -263,19 +271,19 @@ window.onload = function() {
 			.bind("enterframe", function(e) {
 				if(this.__move.left) {
 					if(!this.isPlaying("walk_left"))
-						this.stop().animate("walk_left", 8);
+						this.stop().animate("walk_left", 6);
 				}
 				if(this.__move.right) {
 					if(!this.isPlaying("walk_right"))
-						this.stop().animate("walk_right", 8);
+						this.stop().animate("walk_right", 6);
 				}
 				if(this.__move.up) {
 					if(!this.isPlaying("walk_up"))
-						this.stop().animate("walk_up", 8);
+						this.stop().animate("walk_up", 6);
 				}
 				if(this.__move.down) {
 					if(!this.isPlaying("walk_down"))
-						this.stop().animate("walk_down", 8);
+						this.stop().animate("walk_down", 6);
 				}
 			}).bind("keyup", function(e) {
 				
