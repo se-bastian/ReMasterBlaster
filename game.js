@@ -65,30 +65,62 @@ window.onload = function() {
 		}
 	}	
 
-
-		/*
-		if(distX == 0) {
-			if((x+16) % 32 == 0) {
-				return x+16;
-			}else {
-				return 0;
-			}
+	function yRelocator (y) {
+		var distY = y % 32;
+		var help = 0;
+		var destinationY = 0;
+		
+		if(y % 32 == 0) {
+			return y-12;
 		}else {
-			if ((figurX - 32) > 32) {
-				if((figurX + distX) % 32 == 0) {
-					destinationX = figurX + distX;
-					return destinationX - 16;
-				}
-				if(((figurX - distX) % 32 == 0)){
-					destinationX = figurX - distX;
-					return destinationX - 16;	
-				}			
-			} else{
-				destinationX = 64;
-				return destinationX - 32;			
+			if(distY > 16){
+				help = y + 16 - ((y+16) % 16);
+				destinationY = help - 12; 
+			} else {					
+				destinationY = y - distY - 12;
 			}
-		}*/
+			return destinationY;	
+		}
+	}	
 	
+	function solidDown (x, y) {
+		var xi = Math.round((x)/32);
+		var yi = parseInt((y+44)/32);
+		if (brick_array[xi][yi] >= 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	function solidUp (x, y) {
+		var xi = Math.round((x)/32);
+		var yi = parseInt((y+12)/32);
+		if (brick_array[xi][yi] >= 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	function solidRight (x, y) {
+		var xi = parseInt((x+32)/32);
+		var yi = parseInt((y+27)/32);
+		if (brick_array[xi][yi] >= 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	function solidLeft (x, y) {
+		var xi = parseInt((x)/32);
+		var yi = parseInt((y+27)/32);
+		if (brick_array[xi][yi] >= 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+		
 	function generateWorld() {
 		
 		for(var j = 0; j <=14; j++) {
@@ -152,17 +184,32 @@ window.onload = function() {
 					//move the player in a direction depending on the booleans
 					//only move the player in one direction at a time (up/down/left/right)
 					if(move.right) {
-
-						this.x += this._speed;
+						if(!solidRight(this.x, this.y)){
+							var r = yRelocator(this.y+12);
+							this.y = r;
+							this.x += this._speed;
+						}
 					}
-					else if(move.left) this.x -= this._speed; 
-					else if(move.up) this.y -= this._speed;
+					else if(move.left) {
+						if(!solidLeft(this.x, this.y)){
+							var r = yRelocator(this.y+12);
+							this.y = r;
+							this.x -= this._speed; 
+						}
+					}
+					else if(move.up) {
+						if(!solidUp(this.x, this.y)){
+							var r = xRelocator (this.x);
+							this.x = r;
+							this.y -= this._speed;
+						}
+					}
 					else if(move.down) {
-						var r = xRelocator (this.x);
-						console.log(this.x);
-						console.log(r);
-						this.x = r;
-						this.y += this._speed;
+						if(!solidDown(this.x, this.y)){//!solid
+							var r = xRelocator (this.x);
+							this.x = r;
+							this.y += this._speed;
+						}
 					}
 				}).bind('keydown', function(e) {
 					//default movement booleans to false
@@ -202,8 +249,8 @@ window.onload = function() {
 		
 		//create our player entity with some premade components
 		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate")
-			.attr({x: 32, y: 32, z: 10})
-			.CustomControls(3)
+			.attr({x: 32, y: 32-12, z: 10})
+			.CustomControls(2)
 			.animate("stay_left", [[192,0]])
 			.animate("stay_right", [[288,0]])
 			.animate("stay_up", [[96,0]])
