@@ -20,12 +20,12 @@ window.onload = function() {
 	brick_array[a] = new Array(15)
 	var string = "";
 	
-	for (var j = 0; j <= 14; j++) {
-		for (var i = 0; i <= 18; i++) {
-			brick_array[i][j] = "0";
-		}
-	};
+
 	
+	/**
+	 * Returns true fpr a bricks and filles the 
+	 * array with a 1 at this position
+	 */
 	function generateBricks (i, j) {
 		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40){
 			//fill Array, return true
@@ -37,6 +37,10 @@ window.onload = function() {
 		};
 	};
 
+	/**
+	 * Returns true, if recieved position is around the board 
+	 * and filles the array with a 2 at this position
+	 */
 	function generateWall (i,j) {
 		if(i === 0 || i === 18|| j === 0 || j === 14){
 			brick_array[i][j] = 2;
@@ -128,8 +132,18 @@ window.onload = function() {
 		}
 	}
 	
-		
+	/**
+	 * Generate the world, sets the wall and bricks on the board
+	 */
 	function generateWorld() {
+		/**
+		 * Initialize the array with 0
+		 */
+		for (var j = 0; j <= 14; j++) {
+			for (var i = 0; i <= 18; i++) {
+				brick_array[i][j] = "0";
+			}
+		};
 		
 		for(var j = 0; j <=14; j++) {
 			for(var i = 0; i <=18; i++) {
@@ -146,6 +160,9 @@ window.onload = function() {
 				}
 			}
 		}
+		/**
+		 * Print the values of the array to the console 
+		 */
 		var string = "";
 		for (var j = 0; j <= 14; j++) {
 			for (var i = 0; i <= 18; i++) {
@@ -156,8 +173,6 @@ window.onload = function() {
 			}
 		};
 		console.log(string);
-		
-		//alert(string);
 	}
 	
 	//the loading screen that will display while our assets load
