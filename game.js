@@ -6,13 +6,13 @@ window.onload = function() {
 	Crafty.sprite(32, "sprites.png", {
 		wall: [0, 0],
 		brick: [0, 1],
+		bomb: [0, 2],
 	    empty: [4, 0]
 	});
 	
 	Crafty.sprite("sprite_players.png", {
 		sprite_player_1: [0, 0, 32, 44],
 		sprite_player_2: [0, 44, 32, 88],
-	    empty: [1, 0]
 	});
 	
 	var brick_array = new Array(19)
@@ -30,7 +30,7 @@ window.onload = function() {
 		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40){
 			//fill Array, return true
 			brick_array[i][j] = "1";
-			console.log(brick_array[i][j]);
+			//console.log(brick_array[i][j]);
 			return true;
 		} else {
 			return false;
@@ -94,6 +94,7 @@ window.onload = function() {
 		}
 	}	
 	
+
 	function solidDown (x, y) {
 		var xi = Math.round((x)/32);
 		var xii = (x/32)%10;
@@ -185,7 +186,7 @@ window.onload = function() {
 		//black background with some loading text
         Crafty.background("#337700");
 		Crafty.e("2D, DOM, text").attr({w: 100, h: 20, x: 150, y: 120})
-			.text("Loading")
+			.text("Loading")   
 			.css({"text-align": "center"});
 	});
 	
@@ -194,15 +195,28 @@ window.onload = function() {
 	
 	Crafty.scene("main", function() {
 		generateWorld();
+
+
+		Crafty.c("SetBomb", {
+			init:function(){
+		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate")
+		        .animate('bomb', 0, 2, 2)
+   				//.animate('bomb', 50, -1)
+		        //.bind("AnimationEnd",function(){
+		         //   this.destroy();
+		        //});
+			}
+		});
+		
 		
 		Crafty.c('CustomControls', {
 			__move: {left: false, right: false, up: false, down: false},	
 			_speed: 3,
-			
+			_bombset: false,
 			CustomControls: function(speed) {
 				if(speed) this._speed = speed;
 				var move = this.__move;
-				
+				var bombset = this._bombset;
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
 					//only move the player in one direction at a time (up/down/left/right)
@@ -243,6 +257,19 @@ window.onload = function() {
 					if(e.keyCode === Crafty.keys.LA) move.left = true;
 					if(e.keyCode === Crafty.keys.UA) move.up = true;
 					if(e.keyCode === Crafty.keys.DA) move.down = true;
+					//if key enter is down, set new entity 
+					if(e.keyCode === Crafty.keys.A) {
+						var n = xRelocator (this.x);
+						var m = yRelocator(this.y)+12;
+						bombset = true;
+						Crafty.e("SetBomb")
+						.attr({x: n, y: m, z: 9})
+						.bind("enterframe", function(e){
+							if(bombset) {
+								this.animate("bomb", 10);
+							}
+						});
+		             };
 					
 					this.preventTypeaheadFind(e);
 				}).bind('keyup', function(e) {
@@ -300,8 +327,11 @@ window.onload = function() {
 					if(!this.isPlaying("walk_down"))
 						this.stop().animate("walk_down", 6);
 				}
-			}).bind("keyup", function(e) {
-				
-			});
+
+			})
+
+			//.bombDropper(Crafty.keys.BACKSPACE);
+
+            
 	});
 };
