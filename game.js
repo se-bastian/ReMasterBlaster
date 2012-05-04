@@ -7,6 +7,7 @@ window.onload = function() {
 		wall: [0, 0],
 		brick: [0, 1],
 		bomb: [0, 2],
+		fire: [0, 3],
 	    empty: [4, 0]
 	});
 	
@@ -157,7 +158,6 @@ window.onload = function() {
 				if(generateBricks(i, j)) {
 					var f = Crafty.e("2D, DOM, brick")
 						.attr({ x: i * 32, y: j * 32, z: 3 })
-
 				}
 			}
 		}
@@ -199,23 +199,46 @@ window.onload = function() {
 
 		Crafty.c("SetBomb", {
 			init:function(){
-		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate")
+		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
 		        .animate('bomb', 0, 2, 2)
-   				//.animate('bomb', 50, -1)
-		        //.bind("AnimationEnd",function(){
-		         //   this.destroy();
-		        //});
+				.bind("enterframe", function(e){
+					this.animate("bomb", 10);
+				})
+				.delay(function() {
+                    //this.trigger("explode");
+					Crafty.e("SetFire")
+					.attr({x: this.x, y: this.x, z: 9})
+					this.destroy();
+                }, 3000)
+				
+			}
+		});
+		
+		Crafty.c("SetFire", {
+			init:function(){
+		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "animate", "explodable")
+		        .animate('fire', 0, 3, 5)
+				.bind("enterframe", function(e){
+					console.log("blub");
+					this.animate("fire", 10);
+				})
+				.delay(function() {
+					this.destroy();  
+                }, 1000)
 			}
 		});
 		
 		
 		Crafty.c('CustomControls', {
 			__move: {left: false, right: false, up: false, down: false},	
+			__saveMove: {left: false, right: false, up: false, down: false},	
+			
 			_speed: 3,
 			_bombset: false,
 			CustomControls: function(speed) {
 				if(speed) this._speed = speed;
 				var move = this.__move;
+				var saveMove = this.__saveMove;
 				var bombset = this._bombset;
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
@@ -225,6 +248,7 @@ window.onload = function() {
 							var r = yRelocator(this.y+12);
 							this.y = r;
 							this.x += this._speed;
+							saveMove.right = true;
 						}
 					}
 					else if(move.left) {
@@ -232,6 +256,7 @@ window.onload = function() {
 							var r = yRelocator(this.y+12);
 							this.y = r;
 							this.x -= this._speed; 
+							saveMove.left = true;
 						}
 					}
 					else if(move.up) {
@@ -239,6 +264,7 @@ window.onload = function() {
 							var r = xRelocator (this.x);
 							this.x = r;
 							this.y -= this._speed;
+							saveMove.up = true;
 						}
 					}
 					else if(move.down) {
@@ -246,6 +272,7 @@ window.onload = function() {
 							var r = xRelocator (this.x);
 							this.x = r;
 							this.y += this._speed;
+							saveMove.down = true;
 						}
 					}
 				}).bind('keydown', function(e) {
@@ -259,16 +286,24 @@ window.onload = function() {
 					if(e.keyCode === Crafty.keys.DA) move.down = true;
 					//if key enter is down, set new entity 
 					if(e.keyCode === Crafty.keys.A) {
+						if(saveMove.right){
+							move.right = true;
+						}
+						else if(saveMove.left){
+							move.left = true;
+						}
+						else if(saveMove.up){
+								move.up = true;
+						}
+						else if(saveMove.down){
+							move.down = true;
+						}
 						var n = xRelocator (this.x);
 						var m = yRelocator(this.y)+12;
-						bombset = true;
+						//bombset = true;
 						Crafty.e("SetBomb")
 						.attr({x: n, y: m, z: 9})
-						.bind("enterframe", function(e){
-							if(bombset) {
-								this.animate("bomb", 10);
-							}
-						});
+
 		             };
 					
 					this.preventTypeaheadFind(e);
@@ -276,18 +311,21 @@ window.onload = function() {
 					//if key is released, stop moving
 					if(e.keyCode === Crafty.keys.RA) {
 						move.right = false;
+						saveMove.right = false;
 						this.stop().animate("stay_right", 1);
 					}
 					if(e.keyCode === Crafty.keys.LA) {
 						move.left = false;
+						saveMove.left = false;
 						this.stop().animate("stay_left", 1);
 					}
 					if(e.keyCode === Crafty.keys.UA){
 						move.up = false;
+						saveMove.up = false;
 						this.stop().animate("stay_up", 1);
 					} 
 					if(e.keyCode === Crafty.keys.DA) {
-						move.down = false;
+						move.down = saveMove.down = false;
 						this.stop().animate("stay_down", 1);
 					}
 					this.preventTypeaheadFind(e);
