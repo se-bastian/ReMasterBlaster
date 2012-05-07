@@ -8,7 +8,8 @@ window.onload = function() {
 		brick: [0, 1],
 		bomb: [0, 2],
 		fire: [0, 3],
-	    empty: [4, 0]
+		burning_brick: [0, 4],
+	    empty: [0, 5]
 	});
 	
 	Crafty.sprite("sprite_players.png", {
@@ -16,9 +17,13 @@ window.onload = function() {
 		sprite_player_2: [0, 44, 32, 88],
 	});
 	
-	var brick_array = new Array(19)
-	for (a=0; a <=18; a++)
-	brick_array[a] = new Array(15)
+	var brick_array = new Array(19);
+	var entity_array = new Array(19);
+	for (i=0; i <=18; i++){
+		brick_array[i] = new Array(15);
+		entity_array[i] = new Array(15);
+	};
+	
 	var string = "";
 	
 
@@ -28,10 +33,9 @@ window.onload = function() {
 	 * array with a 1 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40){
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 35 && !(i == 1 && j == 1)){
 			//fill Array, return true
 			brick_array[i][j] = 1;
-			//console.log(brick_array[i][j]);
 			return true;
 		} else {
 			return false;
@@ -144,6 +148,8 @@ window.onload = function() {
 		for (var j = 0; j <= 14; j++) {
 			for (var i = 0; i <= 18; i++) {
 				brick_array[i][j] = 0;
+				entity_array[i][j] = 0;
+				
 			}
 		};
 		
@@ -156,9 +162,11 @@ window.onload = function() {
 				}
 				
 				if(generateBricks(i, j)) {
-					var f = Crafty.e("2D, DOM, brick, solid, explodable")
+					entity_array[i][j] = Crafty.e("2D, DOM, brick, solid, explodable, kill")
 						.attr({ x: i * 32, y: j * 32, z: 3 })
 						.bind('explode', function() {
+							Crafty.e("SetBurningBrick")
+								.setBurningBrick(this.x, this.y);
                             this.destroy();
                         })
 				}
@@ -218,7 +226,7 @@ window.onload = function() {
                     this.trigger("Explode");
 					this.Explode(x, y);
 					Crafty.e("SetFire")
-					.attr({x: x, y: y, z: 9})
+						.setFire(x, y);
 					this.destroy();
                 }, 3000)				
 				
@@ -228,47 +236,69 @@ window.onload = function() {
 		
 		Crafty.c("Explode", {
 			Explode: function(x, y){
-				for (var i=0; i < 1; i++) {
+				for (var i = 0; i < 1; i++) {
 					Crafty.e("2D, DOM")
 						.delay(function(){
-							if(i == 0){
 								Crafty.e("SetFire")
-									.attr({x: x, y: y, z: 9})
-							}else{
-								Crafty.e("SetFire")
-									.attr({x: x+32*i, y: y, z: 9})
+									.setFire(x+32*i, y)
 							
 								Crafty.e("SetFire")
-									.attr({x: x-32*i, y: y, z: 9})
-
+									.setFire(x-32*i, y)
+								
 								Crafty.e("SetFire")	
-									.attr({x: x, y: y+32*i, z: 9})
+									.setFire(x, y+32*i)
 
 								Crafty.e("SetFire")
-									.attr({x: x, y: y-32*i, z: 9})	
-							}	
+									.setFire(x, y-32*i)
 						}, 200)
 				}
 			}
 		});
 
 		Crafty.c("SetFire", {
-			init:function(){
-		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "Collision", "animate")
+			setFire:function(x, y){
+		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "Collision", "animate", "kill", "explodable")
+				.attr({x: x, y: y, z: 9})
 		        .animate('fire', 0, 3, 5)
 				.bind("enterframe", function(e){
 					this.animate("fire", 1);
 				})
-				//.onHit('explodable', function(o) {
-                //   for(var i = 0; i < o.length; i++) {
-                //         o[i].obj.trigger("explode");
-                //    }
-                //})
 				.delay(function() {
 					this.destroy();  
                 }, 250)
+				if(brick_array[x/32][y/32] == 1){
+					entity_array[x/32][y/32].trigger("explode");
+					brick_array[x/32][y/32] = 0;
+				} 
 			}
 		});
+		
+
+		
+		
+		
+		Crafty.c("SetBurningBrick", {
+
+			init:function(){
+				var dropper = this;
+			},
+			setBurningBrick: function(x, y){
+			    this.addComponent("2D","DOM","SpriteAnimation", "burning_brick", "animate")
+				.attr({x: x, y: y, z: 9})
+		        .animate('burning_brick', 0, 4, 2)
+				.bind("enterframe", function(e){
+					this.animate("burning_brick", 10);
+				})
+				.delay(function() {
+                    //this.trigger("Explode");
+					//SET GOODY 
+					this.destroy();
+                }, 500)				
+				
+			}
+		});
+		
+		
 		
 		
 		Crafty.c('CustomControls', {
