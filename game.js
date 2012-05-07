@@ -30,7 +30,7 @@ window.onload = function() {
 	function generateBricks (i, j) {
 		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40){
 			//fill Array, return true
-			brick_array[i][j] = "1";
+			brick_array[i][j] = 1;
 			//console.log(brick_array[i][j]);
 			return true;
 		} else {
@@ -45,7 +45,7 @@ window.onload = function() {
 	function generateWall (i,j) {
 		if(i === 0 || i === 18|| j === 0 || j === 14){
 			brick_array[i][j] = 2;
-			return true;
+			return true;a
 		} else {
 			return false;
 		}
@@ -143,7 +143,7 @@ window.onload = function() {
 		 */
 		for (var j = 0; j <= 14; j++) {
 			for (var i = 0; i <= 18; i++) {
-				brick_array[i][j] = "0";
+				brick_array[i][j] = 0;
 			}
 		};
 		
@@ -156,8 +156,11 @@ window.onload = function() {
 				}
 				
 				if(generateBricks(i, j)) {
-					var f = Crafty.e("2D, DOM, brick")
+					var f = Crafty.e("2D, DOM, brick, solid, explodable")
 						.attr({ x: i * 32, y: j * 32, z: 3 })
+						.bind('explode', function() {
+                            this.destroy();
+                        })
 				}
 			}
 		}
@@ -196,35 +199,74 @@ window.onload = function() {
 	Crafty.scene("main", function() {
 		generateWorld();
 
-
 		Crafty.c("SetBomb", {
+
 			init:function(){
-		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
+				var dropper = this;
+			},
+			setBomb: function(x, y){
+				var a = x/32;
+				var b = y/32;
+
+		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
+				.attr({x: x, y: y, z: 9})
 		        .animate('bomb', 0, 2, 2)
 				.bind("enterframe", function(e){
 					this.animate("bomb", 10);
 				})
 				.delay(function() {
-                    //this.trigger("explode");
+                    this.trigger("Explode");
+					this.Explode(x, y);
 					Crafty.e("SetFire")
-					.attr({x: this.x, y: this.x, z: 9})
+					.attr({x: x, y: y, z: 9})
 					this.destroy();
-                }, 3000)
+                }, 3000)				
 				
 			}
 		});
 		
+		
+		Crafty.c("Explode", {
+			Explode: function(x, y){
+				for (var i=0; i < 1; i++) {
+					Crafty.e("2D, DOM")
+						.delay(function(){
+							if(i == 0){
+								Crafty.e("SetFire")
+									.attr({x: x, y: y, z: 9})
+							}else{
+								Crafty.e("SetFire")
+									.attr({x: x+32*i, y: y, z: 9})
+							
+								Crafty.e("SetFire")
+									.attr({x: x-32*i, y: y, z: 9})
+
+								Crafty.e("SetFire")	
+									.attr({x: x, y: y+32*i, z: 9})
+
+								Crafty.e("SetFire")
+									.attr({x: x, y: y-32*i, z: 9})	
+							}	
+						}, 200)
+				}
+			}
+		});
+
 		Crafty.c("SetFire", {
 			init:function(){
-		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "animate", "explodable")
+		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "Collision", "animate")
 		        .animate('fire', 0, 3, 5)
 				.bind("enterframe", function(e){
-					console.log("blub");
-					this.animate("fire", 10);
+					this.animate("fire", 1);
 				})
+				//.onHit('explodable', function(o) {
+                //   for(var i = 0; i < o.length; i++) {
+                //         o[i].obj.trigger("explode");
+                //    }
+                //})
 				.delay(function() {
 					this.destroy();  
-                }, 1000)
+                }, 250)
 			}
 		});
 		
@@ -302,8 +344,7 @@ window.onload = function() {
 						var m = yRelocator(this.y)+12;
 						//bombset = true;
 						Crafty.e("SetBomb")
-						.attr({x: n, y: m, z: 9})
-
+						.setBomb(n,m);
 		             };
 					
 					this.preventTypeaheadFind(e);
