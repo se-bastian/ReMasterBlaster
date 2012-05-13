@@ -15,6 +15,8 @@ window.onload = function() {
 		bomb: [0, 2],
 		fire: [0, 3],
 		burning_brick: [0, 4],
+		speed_up: [0, 5],
+		bombs_up: [1, 5],
 	    empty: [0, 5]
 	});
 	
@@ -203,7 +205,7 @@ window.onload = function() {
 					string+="\n";
 			}
 		};
-		console.log(string);
+		//console.log(string);
 	}
 	
 	//the loading screen that will display while our assets load
@@ -242,11 +244,11 @@ window.onload = function() {
 					this.animate("bomb", 10);
 				})
 				.delay(function() {
-                    this.trigger("Explode");
-					this.Explode(x, y);
+                    Crafty.e("Explode")
+					  .Explode(x, y);
 					//Sets the entity SetFire
-					Crafty.e("SetFire")
-						.setFire(x, y);
+					//Crafty.e("SetFire")
+					//	.setFire(x, y);
 					bombsPlanted -= 1;
 					this.destroy();				
                 }, 3000)				
@@ -256,36 +258,39 @@ window.onload = function() {
 		/**
 		 * gives the entity Explode animation and logic
 		 */
+		var fire = new Array(50);
+		
+		function pausecomp(ms) {
+		ms += new Date().getTime();
+		while (new Date() < ms){}
+		}
+		
 		Crafty.c("Explode", {
 			Explode: function(x, y){
-				for (var i = 0; i < 1; i++) {
-						var f = Crafty.e("2D, DOM")
-								.attr({x: x, y: y, z: 3})
-								.delay(function(){
-									if(!((x + 32)/32 === 18)){
-										Crafty.e("SetFire")
-											.setFire(x+32*i, y)
-									}
-									if(!((x - 32)/32 === 0)){
-										Crafty.e("SetFire")
-											.setFire(x-32*i, y)
-									}
-									if(!((y + 32)/32 === 14)){
-										Crafty.e("SetFire")	
-											.setFire(x, y+32*i)
-									}
-									if(!((y - 32)/32 === 0)){
-										Crafty.e("SetFire")
-											.setFire(x, y-32*i)
-									}
-								}, 200)
-				}
-			}
+				for (var i=0; i < 3; i++) {
+					if(!((x + 32)/32 === 18)){
+						Crafty.e("SetFire")
+							.setFire(x+32*i, y)
+					}
+					if(!((x - 32)/32 === 0)){
+						Crafty.e("SetFire")
+							.setFire(x-32*i, y)
+					}
+					if(!((y + 32)/32 === 14)){
+						Crafty.e("SetFire")	
+							.setFire(x, y+32*i)
+					}
+					if(!((y - 32)/32 === 0)){
+						Crafty.e("SetFire")
+							.setFire(x, y-32*i)
+					}
+				};
+			}   
 		});
 
 		Crafty.c("SetFire", {
 			setFire:function(x, y){
-		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "Collision", "animate")
+		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "animate")
 				.attr({x: x, y: y, z: 9})
 		        .animate('fire', 0, 3, 5)
 				.bind("enterframe", function(e){
@@ -313,6 +318,14 @@ window.onload = function() {
 			}
 		});
 
+		function getRandom (max) {
+			return Crafty.randRange(0, max)
+		}
+		function generateGoody (type, x, y) {
+			var goodyType = type;
+			Crafty.e("SetGoody")
+				.setGoody(x, y, goodyType)
+		}
 		/**
 		 * animation for a burning brick   
 		 */
@@ -329,6 +342,21 @@ window.onload = function() {
 					this.animate("burning_brick", 10);
 				})
 				.delay(function() {
+					if(Crafty.randRange(0, 50) > 15){
+						switch (parseInt(getRandom(2))) {
+							case 0:
+								generateGoody("speed_up", x, y);
+								break;
+							case 1:
+								generateGoody("bombs_up", x, y);
+								break;
+							case 2:
+								generateGoody("speed_up", x, y);
+								break;	
+							default:
+								break;
+						}
+					}
 					this.destroy();
                 }, 500)				
 				
@@ -336,8 +364,8 @@ window.onload = function() {
 		});
 		
 		Crafty.c("SetGoody", {
-			setGoody:function(x, y){
-		        this.addComponent("2D, DOM, wall, explodable")
+			setGoody:function(x, y, goodyType){
+		        this.addComponent("2D", "DOM", goodyType, "explodable")
 				.attr({x: x, y: y, z: 9})
 				.bind('explode', function() {
                     this.destroy();
@@ -420,7 +448,6 @@ window.onload = function() {
 						//bombset = true;
 
 						if(bombsPlanted < maxBombs){
-							console.log("Plantbomb");
 							Crafty.e("SetBomb")
 								.setBomb(n,m);
 						}
