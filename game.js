@@ -28,6 +28,7 @@ window.onload = function() {
 	Crafty.sprite("sprite_players.png", {
 		sprite_player_1: [0, 0, 32, 44],
 		sprite_player_2: [0, 44, 32, 88],
+		sprite_player_death_1: [0, 88, 32, 44]
 	});
 	
 	/**
@@ -51,7 +52,7 @@ window.onload = function() {
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 25 && !(i == 1 && j == 1)){
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40 && !(i == 1 && j == 1)){
 			//fill Array, return true
 			if(Crafty.randRange(0, 50) > 45){
 				brick_array[i][j] = 4;
@@ -361,8 +362,19 @@ window.onload = function() {
 					this.animate("fire", 1);
 				})
 				.delay(function() {
+					player.xDeath = xRelocator(player.x);
+					player.yDeath = yRelocator(player.y)+12;
+					console.log(player.xDeath, player.yDeath);
+					if(player.xDeath == x && player.yDeath == y){
+						player.trigger("explode");
+						console.log("player Killed");
+					} else{
+						//console.log(xRelocator(player.y), y);
+					}
+					
 					this.destroy();  
                 }, 250)
+
 				
 				switch (brick_array[x/32][y/32]) {
 					case 2:
@@ -425,7 +437,7 @@ window.onload = function() {
 			setBurningBrick: function(x, y){
 			    this.addComponent("2D","DOM","SpriteAnimation", "burning_brick", "animate")
 				.attr({x: x, y: y, z: 9})
-		        .animate('burning_brick', 0, 4, 2)
+		        .animate('burning_brick', 0, 4, 3)
 				.bind("enterframe", function(e){
 					this.animate("burning_brick", 10);
 				})
@@ -466,7 +478,9 @@ window.onload = function() {
 		
 		Crafty.c('CustomControls', {
 			__move: {left: false, right: false, up: false, down: false},	
-			__saveMove: {left: false, right: false, up: false, down: false},	
+			__saveMove: {left: false, right: false, up: false, down: false},
+			xDeath: 0,
+			yDeath: 0,	
 			maxBombs: 1,
 			speed: 1.5,
 			fireRange: 2,
@@ -575,6 +589,21 @@ window.onload = function() {
 			}
 		});
 		
+		
+		Crafty.c("PolicemanDeath", {
+			init:function(){
+				this.addComponent("2D","DOM","SpriteAnimation", "sprite_player_death_1", "animate")
+				.animate("sprite_player_death_1", [[0,88],[32,88],[64,88],[96,88],[128,88],[160,88],[192,88],[224,88],[256,88]])
+				//.animate('sprite_player_death_1', 0, 3, 8)
+				.bind("enterframe", function(e){
+					this.animate("sprite_player_death_1", 10);
+				})
+				.delay(function() {
+					this.destroy();				
+                }, 600)
+			}
+		});
+		
 		//create our player entity with some premade components
 		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate, explodable")
 			.attr({x: 32, y: 32-12, z: 10})
@@ -588,6 +617,7 @@ window.onload = function() {
             .animate("walk_right", [[288,0],[320,0],[352,0]])
             .animate("walk_up", [[96,0],[128,0],[160,0]])
             .animate("walk_down", [[0,0],[32,0],[64,0]])
+			
 			.bind("enterframe", function(e) {
 				if(this.__move.left) {
 					if(!this.isPlaying("walk_left"))
@@ -607,7 +637,10 @@ window.onload = function() {
 				}
 			})
 			.bind("explode", function() {
-				
+				Crafty.e("PolicemanDeath")
+					.attr({x: player.xDeath, y: player.yDeath-12, z: 10})
+					
+				this.destroy();
 			})
 
 			//.bombDropper(Crafty.keys.BACKSPACE);
