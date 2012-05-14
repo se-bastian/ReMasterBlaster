@@ -53,7 +53,7 @@ window.onload = function() {
 	function generateBricks (i, j) {
 		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 25 && !(i == 1 && j == 1)){
 			//fill Array, return true
-			if(Crafty.randRange(0, 50) > 35){
+			if(Crafty.randRange(0, 50) > 45){
 				brick_array[i][j] = 4;
 			}else {
 				brick_array[i][j] = 2;
@@ -120,10 +120,10 @@ window.onload = function() {
 			return destinationY;	
 		}
 	}	
-	
-	
-	
-	
+
+	/**
+	 * Functions to update the player properties speed, maxbombs, fireRange and Time Fuze
+	 */
 	function speedUp (xi, yi) {
 		player.attr({speed: player.speed+1.0});
 		brick_array[xi][yi] = 0;
@@ -145,7 +145,9 @@ window.onload = function() {
 		goody_array[xi][yi].trigger("explode");	
 	}
 	
-	
+	/**
+	 * Checks if a goody lies at the delivered position
+	 */
 	function checkForGoody(xi, yi){
 		if(brick_array[xi][yi] == 10){
 			speedUp(xi, yi);
@@ -220,6 +222,8 @@ window.onload = function() {
 		}
 	}
 	
+
+	
 	/**
 	 * Generate the world, sets the wall and bricks on the board
 	 */
@@ -257,15 +261,7 @@ window.onload = function() {
 		/**
 		 * Print the values of the array to the console 
 		 */
-		var string = "";
-		for (var j = 0; j <= 14; j++) {
-			for (var i = 0; i <= 18; i++) {
-				string += brick_array[i][j];
-				
-				if(i==18)
-					string+="\n";
-			}
-		};
+
 		//console.log(string);
 	}
 	
@@ -289,6 +285,16 @@ window.onload = function() {
 	Crafty.scene("main", function() {
 		generateWorld();
 
+		var string = "";
+		for (var j = 0; j <= 14; j++) {
+			for (var i = 0; i <= 18; i++) {
+				string += brick_array[i][j];
+
+				if(i==18)
+					string+="\n";
+			}
+		};
+		
 		/**
 		 * gives the entity SetBomb animation and logic
 		 */
@@ -316,25 +322,26 @@ window.onload = function() {
 		/**
 		 * gives the entity Explode animation and logic
 		 */
-		
+		destroyDirection = {left: false, right: false, up: false, down: false};	
+
 		Crafty.c("Explode", {
 			Explode: function(x, y){
 				Crafty.e("SetFire")
 					.setFire(x, y)
 				for (var i=1; i <= player.fireRange; i++) {
-					if(!((x + 32)/32 === 18)){
+					if(x + 32*i < 576){
 						Crafty.e("SetFire")
 							.setFire(x+32*i, y)
 					}
-					if(!((x - 32)/32 === 0)){
+					if(x - 32*i > 0){
 						Crafty.e("SetFire")
 							.setFire(x-32*i, y)
 					}
-					if(!((y + 32)/32 === 14)){
+					if(y + 32*i < 448){
 						Crafty.e("SetFire")	
 							.setFire(x, y+32*i)
 					}
-					if(!((y - 32)/32 === 0)){
+					if(y - 32*i > 0){
 						Crafty.e("SetFire")
 							.setFire(x, y-32*i)
 					}
@@ -344,7 +351,6 @@ window.onload = function() {
 
 		Crafty.c("SetFire", {
 			setFire:function(x, y){
-				try{
 				if((x == 0) || (x == 576) || (y == 0) || (y == 448)){
 					return;
 				} else {
@@ -357,31 +363,43 @@ window.onload = function() {
 				.delay(function() {
 					this.destroy();  
                 }, 250)
-			
-				if(brick_array[x/32][y/32] >=10){
-					brick_array[x/32][y/32] = 0;
-					goody_array[x/32][y/32].trigger("explode");
-				} else if(brick_array[x/32][y/32] == 4){
-					entity_array[x/32][y/32].sprite(1, 1);
-				} else if (brick_array[x/32][y/32] == 3){
-					entity_array[x/32][y/32].sprite(2, 1);
-					brick_array[x/32][y/32] = 2;				
-				} else if(brick_array[x/32][y/32] == 2){
-					entity_array[x/32][y/32].trigger("explode");
-					brick_array[x/32][y/32] = 0;
-				} 
 				
-				if(brick_array[x/32][y/32] == 4)
-					brick_array[x/32][y/32] = 3;
-				
-				if(brick_array[x/32][y/32] == 4)
-					brick_array[x/32][y/32] = 2;
-				}				
+				switch (brick_array[x/32][y/32]) {
+					case 2:
+						entity_array[x/32][y/32].trigger("explode");
+						brick_array[x/32][y/32] = 0;
+						break;
+					case 3:
+						entity_array[x/32][y/32].sprite(2, 1);
+						brick_array[x/32][y/32] = 2;
+						break;
+					case 4:
+						entity_array[x/32][y/32].sprite(1, 1);
+						brick_array[x/32][y/32] = 3;
+						break;
+					case 10:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;
+					case 11:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;
+					case 12:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;
+					case 13:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;	
+					default:
+						brick_array[x/32][y/32] = 0;
+						break;
 				}
-				catch(e){
-					console.log("Fehler");
-				}
+
 			}
+		}
 		});
 
 		function getRandom (max) {
