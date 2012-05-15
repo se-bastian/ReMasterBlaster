@@ -18,6 +18,7 @@ window.onload = function() {
 		speed_up: [0, 5],
 		bombs_up: [1, 5],
 		fire_up: [2, 5],
+		time_fuze: [3, 5],
 	    empty: [0, 5]
 	});
 	
@@ -27,6 +28,7 @@ window.onload = function() {
 	Crafty.sprite("sprite_players.png", {
 		sprite_player_1: [0, 0, 32, 44],
 		sprite_player_2: [0, 44, 32, 88],
+		sprite_player_death_1: [0, 88, 32, 44]
 	});
 	
 	/**
@@ -50,9 +52,9 @@ window.onload = function() {
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 25 && !(i == 1 && j == 1)){
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40 && !(i == 1 && j == 1)){
 			//fill Array, return true
-			if(Crafty.randRange(0, 50) > 35){
+			if(Crafty.randRange(0, 50) > 45){
 				brick_array[i][j] = 4;
 			}else {
 				brick_array[i][j] = 2;
@@ -119,13 +121,12 @@ window.onload = function() {
 			return destinationY;	
 		}
 	}	
-	
-	
-	
-	
+
+	/**
+	 * Functions to update the player properties speed, maxbombs, fireRange and Time Fuze
+	 */
 	function speedUp (xi, yi) {
-		var currentSpeed = player.speed;
-		player.attr({speed: currentSpeed+1.5});
+		player.attr({speed: player.speed+1.0});
 		brick_array[xi][yi] = 0;
 		goody_array[xi][yi].trigger("explode");
 	}
@@ -139,6 +140,15 @@ window.onload = function() {
 		brick_array[xi][yi] = 0;
 		goody_array[xi][yi].trigger("explode");	
 	}
+	function timeFuze (xi, yi) {
+		player.attr({timeFuze: player.timeFuze-1000});
+		brick_array[xi][yi] = 0;
+		goody_array[xi][yi].trigger("explode");	
+	}
+	
+	/**
+	 * Checks if a goody lies at the delivered position
+	 */
 	function checkForGoody(xi, yi){
 		if(brick_array[xi][yi] == 10){
 			speedUp(xi, yi);
@@ -150,6 +160,10 @@ window.onload = function() {
 		}
 		if(brick_array[xi][yi] == 12){
 			fireUp(xi, yi);
+			return true;
+		}
+		if(brick_array[xi][yi] == 13){
+			timeFuze(xi, yi);
 			return true;
 		}
 	}
@@ -209,6 +223,8 @@ window.onload = function() {
 		}
 	}
 	
+
+	
 	/**
 	 * Generate the world, sets the wall and bricks on the board
 	 */
@@ -246,15 +262,7 @@ window.onload = function() {
 		/**
 		 * Print the values of the array to the console 
 		 */
-		var string = "";
-		for (var j = 0; j <= 14; j++) {
-			for (var i = 0; i <= 18; i++) {
-				string += brick_array[i][j];
-				
-				if(i==18)
-					string+="\n";
-			}
-		};
+
 		//console.log(string);
 	}
 	
@@ -278,6 +286,16 @@ window.onload = function() {
 	Crafty.scene("main", function() {
 		generateWorld();
 
+		var string = "";
+		for (var j = 0; j <= 14; j++) {
+			for (var i = 0; i <= 18; i++) {
+				string += brick_array[i][j];
+
+				if(i==18)
+					string+="\n";
+			}
+		};
+		
 		/**
 		 * gives the entity SetBomb animation and logic
 		 */
@@ -298,32 +316,33 @@ window.onload = function() {
 					  .Explode(x, y);
 					bombsPlanted -= 1;
 					this.destroy();				
-                }, 3000)				
+                }, player.timeFuze)				
 			}
 		});
 		
 		/**
 		 * gives the entity Explode animation and logic
 		 */
-		
+		destroyDirection = {left: false, right: false, up: false, down: false};	
+
 		Crafty.c("Explode", {
 			Explode: function(x, y){
 				Crafty.e("SetFire")
 					.setFire(x, y)
 				for (var i=1; i <= player.fireRange; i++) {
-					if(!((x + 32)/32 === 18)){
+					if(x + 32*i < 576){
 						Crafty.e("SetFire")
 							.setFire(x+32*i, y)
 					}
-					if(!((x - 32)/32 === 0)){
+					if(x - 32*i > 0){
 						Crafty.e("SetFire")
 							.setFire(x-32*i, y)
 					}
-					if(!((y + 32)/32 === 14)){
+					if(y + 32*i < 448){
 						Crafty.e("SetFire")	
 							.setFire(x, y+32*i)
 					}
-					if(!((y - 32)/32 === 0)){
+					if(y - 32*i > 0){
 						Crafty.e("SetFire")
 							.setFire(x, y-32*i)
 					}
@@ -333,6 +352,9 @@ window.onload = function() {
 
 		Crafty.c("SetFire", {
 			setFire:function(x, y){
+				if((x == 0) || (x == 576) || (y == 0) || (y == 448)){
+					return;
+				} else {
 		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "animate")
 				.attr({x: x, y: y, z: 9})
 		        .animate('fire', 0, 3, 5)
@@ -340,30 +362,56 @@ window.onload = function() {
 					this.animate("fire", 1);
 				})
 				.delay(function() {
+					player.xDeath = xRelocator(player.x);
+					player.yDeath = yRelocator(player.y)+12;
+					console.log(player.xDeath, player.yDeath);
+					if(player.xDeath == x && player.yDeath == y){
+						player.trigger("explode");
+						console.log("player Killed");
+					} else{
+						//console.log(xRelocator(player.y), y);
+					}
+					
 					this.destroy();  
                 }, 250)
-				if(brick_array[x/32][y/32] >=10){
-					brick_array[x/32][y/32] = 0;
-					goody_array[x/32][y/32].trigger("explode");
-					console.log("destroy goody")
+
+				
+				switch (brick_array[x/32][y/32]) {
+					case 2:
+						entity_array[x/32][y/32].trigger("explode");
+						brick_array[x/32][y/32] = 0;
+						break;
+					case 3:
+						entity_array[x/32][y/32].sprite(2, 1);
+						brick_array[x/32][y/32] = 2;
+						break;
+					case 4:
+						entity_array[x/32][y/32].sprite(1, 1);
+						brick_array[x/32][y/32] = 3;
+						break;
+					case 10:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;
+					case 11:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;
+					case 12:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;
+					case 13:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;	
+					default:
+						brick_array[x/32][y/32] = 0;
+						break;
 				}
-				
-				if(brick_array[x/32][y/32] == 4){
-					entity_array[x/32][y/32].sprite(1, 1);
-				} else if (brick_array[x/32][y/32] == 3){
-					entity_array[x/32][y/32].sprite(2, 1);
-					brick_array[x/32][y/32] = 2;				
-				} else if(brick_array[x/32][y/32] == 2){
-					entity_array[x/32][y/32].trigger("explode");
-					brick_array[x/32][y/32] = 0;
-				} 
-				
-				if(brick_array[x/32][y/32] == 4)
-					brick_array[x/32][y/32] = 3;
-				
-				if(brick_array[x/32][y/32] == 4)
-					brick_array[x/32][y/32] = 2;				
+
 			}
+		}
 		});
 
 		function getRandom (max) {
@@ -371,7 +419,6 @@ window.onload = function() {
 		}
 		function generateGoody (type, x, y, typeNumber) {
 			var goodyType = type;
-			console.log(x, y);
 			brick_array[x/32][y/32] = typeNumber;
 			goody_array[x/32][y/32] = Crafty.e("2D", "DOM", goodyType, "explodable")
 				.attr({x: x, y: y, z: 9})
@@ -390,13 +437,13 @@ window.onload = function() {
 			setBurningBrick: function(x, y){
 			    this.addComponent("2D","DOM","SpriteAnimation", "burning_brick", "animate")
 				.attr({x: x, y: y, z: 9})
-		        .animate('burning_brick', 0, 4, 2)
+		        .animate('burning_brick', 0, 4, 3)
 				.bind("enterframe", function(e){
 					this.animate("burning_brick", 10);
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 15){
-						switch (parseInt(getRandom(2))) {
+						switch (parseInt(getRandom(3))) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -406,6 +453,9 @@ window.onload = function() {
 							case 2:
 								generateGoody("fire_up", x, y, 12);
 								break;	
+							case 3:
+								generateGoody("time_fuze", x, y, 13);
+								break;
 							default:
 								break;
 						}
@@ -428,10 +478,13 @@ window.onload = function() {
 		
 		Crafty.c('CustomControls', {
 			__move: {left: false, right: false, up: false, down: false},	
-			__saveMove: {left: false, right: false, up: false, down: false},	
+			__saveMove: {left: false, right: false, up: false, down: false},
+			xDeath: 0,
+			yDeath: 0,	
 			maxBombs: 1,
 			speed: 1.5,
 			fireRange: 2,
+			timeFuze:3000,
 			_bombset: false,
 			CustomControls: function(speed, maxBombs) {
 				if(speed) this.speed = speed;
@@ -536,10 +589,25 @@ window.onload = function() {
 			}
 		});
 		
+		
+		Crafty.c("PolicemanDeath", {
+			init:function(){
+				this.addComponent("2D","DOM","SpriteAnimation", "sprite_player_death_1", "animate")
+				.animate("sprite_player_death_1", [[0,88],[32,88],[64,88],[96,88],[128,88],[160,88],[192,88],[224,88],[256,88]])
+				//.animate('sprite_player_death_1', 0, 3, 8)
+				.bind("enterframe", function(e){
+					this.animate("sprite_player_death_1", 10);
+				})
+				.delay(function() {
+					this.destroy();				
+                }, 600)
+			}
+		});
+		
 		//create our player entity with some premade components
-		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate")
+		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate, explodable")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControls(1.5, 1)
+			.CustomControls(1.7, 1)
 			.animate("stay_left", [[192,0]])
 			.animate("stay_right", [[288,0]])
 			.animate("stay_up", [[96,0]])
@@ -549,6 +617,7 @@ window.onload = function() {
             .animate("walk_right", [[288,0],[320,0],[352,0]])
             .animate("walk_up", [[96,0],[128,0],[160,0]])
             .animate("walk_down", [[0,0],[32,0],[64,0]])
+			
 			.bind("enterframe", function(e) {
 				if(this.__move.left) {
 					if(!this.isPlaying("walk_left"))
@@ -566,6 +635,12 @@ window.onload = function() {
 					if(!this.isPlaying("walk_down"))
 						this.stop().animate("walk_down", 6);
 				}
+			})
+			.bind("explode", function() {
+				Crafty.e("PolicemanDeath")
+					.attr({x: player.xDeath, y: player.yDeath-12, z: 10})
+					
+				this.destroy();
 			})
 
 			//.bombDropper(Crafty.keys.BACKSPACE);
