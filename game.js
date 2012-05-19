@@ -19,6 +19,7 @@ window.onload = function() {
 		bombs_up: [1, 5],
 		fire_up: [2, 5],
 		time_fuze: [3, 5],
+		death_skull: [0, 6],
 	    empty: [0, 5]
 	});
 	
@@ -144,6 +145,15 @@ window.onload = function() {
 		brick_array[xi][yi] = 0;
 		goody_array[xi][yi].trigger("explode");	
 	}
+	function deathSkull (xi, yi) {
+		brick_array[xi][yi] = 0;
+		goody_array[xi][yi].trigger("explode");	
+		player.xDeath = goody_array[xi][yi].x;
+		console.log(player.xDeath);
+		player.yDeath = goody_array[xi][yi].y;
+		player.trigger("explode");
+	}
+	
 	
 	/**
 	 * Checks if a goody lies at the delivered position
@@ -163,6 +173,10 @@ window.onload = function() {
 		}
 		if(brick_array[xi][yi] == 13){
 			timeFuze(xi, yi);
+			return true;
+		}
+		if(brick_array[xi][yi] == 14) {
+			deathSkull(xi, yi);
 			return true;
 		}
 	}
@@ -420,7 +434,11 @@ window.onload = function() {
 					case 13:
 						brick_array[x/32][y/32] = 0;
 						goody_array[x/32][y/32].trigger("explode");
-						break;	
+						break;
+					case 14:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;
 					default:
 						brick_array[x/32][y/32] = 0;
 						break;
@@ -458,7 +476,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 15){
-						switch (parseInt(getRandom(3))) {
+						switch (parseInt(getRandom(4))) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -471,6 +489,9 @@ window.onload = function() {
 							case 3:
 								generateGoody("time_fuze", x, y, 13);
 								break;
+							case 4: 
+								generateGoody("death_skull", x, y, 14);
+								break;
 							default:
 								break;
 						}
@@ -478,16 +499,6 @@ window.onload = function() {
 					this.destroy();
                 }, 500)				
 				
-			}
-		});
-		
-		Crafty.c("SetGoody", {
-			setGoody:function(x, y, goodyType){
-		        this.addComponent("2D", "DOM", goodyType, "explodable")
-				.attr({x: x, y: y, z: 9})
-				.bind('explode', function() {
-                    this.destroy();
-                })
 			}
 		});
 		
