@@ -7,6 +7,9 @@ window.onload = function() {
 	/**
 	 * Sprites
 	 */
+	
+	Crafty.audio.add("alarm", "sounds/alarm.mp3");
+	
 	Crafty.sprite(32, "sprites.png", {
 		wall: [0, 0],
 		brick: [0, 1],
@@ -19,6 +22,7 @@ window.onload = function() {
 		bombs_up: [1, 5],
 		fire_up: [2, 5],
 		time_fuze: [3, 5],
+		disease: [4, 5],
 		death_skull: [0, 6],
 	    empty: [0, 5]
 	});
@@ -149,9 +153,13 @@ window.onload = function() {
 		brick_array[xi][yi] = 0;
 		goody_array[xi][yi].trigger("explode");	
 		player.xDeath = goody_array[xi][yi].x;
-		console.log(player.xDeath);
 		player.yDeath = goody_array[xi][yi].y;
 		player.trigger("explode");
+	}
+	function disease (xi, yi) {
+		player.attr({timeTillExplode: player.timeTillExplode - 2});
+		brick_array[xi][yi] = 0;
+		goody_array[xi][yi].trigger("explode");	
 	}
 	
 	
@@ -177,6 +185,10 @@ window.onload = function() {
 		}
 		if(brick_array[xi][yi] == 14) {
 			deathSkull(xi, yi);
+			return true;
+		}
+		if(brick_array[xi][yi] == 15) {
+			disease(xi, yi);
 			return true;
 		}
 	}
@@ -330,7 +342,7 @@ window.onload = function() {
 					  .Explode(x, y);
 					bombsPlanted -= 1;
 					this.destroy();				
-                }, 3000)				
+                }, player.timeTillExplode * 1000)				
 			}
 		});
 				
@@ -401,7 +413,6 @@ window.onload = function() {
 					player.yDeath = yRelocator(player.y)+12;
 					if(player.xDeath == x && player.yDeath == y){
 						player.trigger("explode");
-						console.log("player Killed");
 					}
 					this.destroy();  
                 }, 250)
@@ -439,6 +450,10 @@ window.onload = function() {
 						brick_array[x/32][y/32] = 0;
 						goody_array[x/32][y/32].trigger("explode");
 						break;
+					case 15:
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
+						break;						
 					default:
 						brick_array[x/32][y/32] = 0;
 						break;
@@ -475,8 +490,8 @@ window.onload = function() {
 					this.animate("burning_brick", 10);
 				})
 				.delay(function() {
-					if(Crafty.randRange(0, 50) > 15){
-						switch (parseInt(getRandom(4))) {
+					if(Crafty.randRange(0, 50) > 25){
+						switch (parseInt(getRandom(5))) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -491,6 +506,9 @@ window.onload = function() {
 								break;
 							case 4: 
 								generateGoody("death_skull", x, y, 14);
+								break;
+							case 5: 
+								generateGoody("disease", x, y, 15);
 								break;
 							default:
 								break;
@@ -512,6 +530,7 @@ window.onload = function() {
 			maxBombs: 1,
 			speed: 1.5,
 			fireRange: 2,
+			timeTillExplode: 3,
 			timeFuze:false,
 			_bombset: false,
 			CustomControls: function(speed, maxBombs) {
@@ -693,8 +712,8 @@ window.onload = function() {
 					triggeredBomb.trigger("explode");
 				}
 				Crafty.e("PolicemanDeath")
-					.attr({x: player.xDeath, y: player.yDeath-12, z: 10})
-					
+					.attr({x: player.xDeath, y: player.yDeath-12, z: 10});
+				console.log("player Killed");
 				this.destroy();
 			})
 	});
