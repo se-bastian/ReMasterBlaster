@@ -3,7 +3,7 @@ window.onload = function() {
 	Crafty.init(608, 480);
 //	Crafty.canvas();
 	
-	
+
 	/**
 	 * Sprites
 	 */
@@ -23,7 +23,8 @@ window.onload = function() {
 		fire_up: [2, 5],
 		time_fuze: [3, 5],
 		disease: [4, 5],
-		death_skull: [0, 6],
+		invincible: [0, 6],
+		death_skull: [0, 7],
 	    empty: [0, 5]
 	});
 	
@@ -32,8 +33,8 @@ window.onload = function() {
 	 */
 	Crafty.sprite("sprite_players.png", {
 		sprite_player_1: [0, 0, 32, 44],
-		sprite_player_2: [0, 44, 32, 88],
-		sprite_player_death_1: [0, 88, 32, 44]
+		sprite_player_death_1: [0, 44, 32, 44],
+		spirte_player_Invincible: [0, 88, 32, 44]
 	});
 	
 	/**
@@ -161,6 +162,11 @@ window.onload = function() {
 		brick_array[xi][yi] = 0;
 		goody_array[xi][yi].trigger("explode");	
 	}
+	function invincible (xi, yi) {
+		brick_array[xi][yi] = 0;
+		goody_array[xi][yi].trigger("explode");	
+		player.addComponent("Invincible");
+	}
 	
 	
 	/**
@@ -189,6 +195,10 @@ window.onload = function() {
 		}
 		if(brick_array[xi][yi] == 15) {
 			disease(xi, yi);
+			return true;
+		}
+		if(brick_array[xi][yi] == 16) {
+			invincible(xi, yi);
 			return true;
 		}
 	}
@@ -372,30 +382,30 @@ window.onload = function() {
 		/**
 		 * gives the entity Explode animation and logic
 		 */
-		
 		Crafty.c("Explode", {
 			Explode: function(x, y){
 				Crafty.e("SetFire")
 					.setFire(x, y)
 				var solidDirection = {left: false, right: false, up: false, down: false};
 				for (var i=1; i <= player.fireRange; i++) {
-
+					setTimeout(function(){	}, 1000);
 					if((x + 32*i < 576)) {
 						if(i==1) {
 							if (brick_array[(x+32)/32][y/32]>1) {
 								solidDirection.right = true;
 							};
+
 							Crafty.e("SetFire")
 								.setFire(x+32*i, y);	
 						};
 						if ((i>=2) && !solidDirection.right) {
 							if (brick_array[(x+32*i)/32][y/32]>1) {
 								solidDirection.right=true;
-							}
+							};
 							Crafty.e("SetFire")
 								.setFire(x+32*i, y);
-						}
-					}
+						};
+					};
 					
 					if((x - 32*i > 0 )) {
 						if(i==1) {
@@ -408,11 +418,11 @@ window.onload = function() {
 						if ((i>=2) && !solidDirection.left) {
 							if (brick_array[(x-32*i)/32][y/32]>1) {
 								solidDirection.left=true;
-							}
+							};
 							Crafty.e("SetFire")
 								.setFire(x-32*i, y);
-						}
-					}
+						};
+					};
 					
 					if(y + 32*i < 448) {
 						if(i==1) {
@@ -425,11 +435,11 @@ window.onload = function() {
 						if ((i>=2) && !solidDirection.down) {
 							if (brick_array[x/32][(y+32*i)/32]>1) {
 								solidDirection.down=true;
-							}
+							};
 							Crafty.e("SetFire")
 								.setFire(x, y+32*i)
-						}
-					}
+						};
+					};
 					
 					if(y - 32*i > 0) {
 						if(i==1) {
@@ -442,11 +452,11 @@ window.onload = function() {
 						if ((i>=2) && !solidDirection.up) {
 							if (brick_array[x/32][(y-32*i)/32]>1) {
 								solidDirection.up=true;
-							}
+							};
 							Crafty.e("SetFire")
 								.setFire(x, y-32*i)
-						}
-					}
+						};
+					};
 				};
 			}   
 		});
@@ -466,7 +476,14 @@ window.onload = function() {
 					player.xDeath = xRelocator(player.x);
 					player.yDeath = yRelocator(player.y)+12;
 					if(player.xDeath == x && player.yDeath == y){
-						player.trigger("explode");
+						if(player.has("Invincible")){
+							player.removeComponent("Invincible")
+							player.addComponent("Normal");
+						}else {
+
+							player.trigger("explode");	
+						}
+						
 					}
 					this.destroy();  
                 }, 250)
@@ -499,7 +516,7 @@ window.onload = function() {
 
 		function getRandom (max) {
 			return Crafty.randRange(0, max)
-		}
+		};
 		function generateGoody (type, x, y, typeNumber) {
 			var goodyType = type;
 			brick_array[x/32][y/32] = typeNumber;
@@ -508,7 +525,7 @@ window.onload = function() {
 				.bind('explode', function() {
                 	this.destroy();
             	});
-		}
+		};
 		/**
 		 * animation for a burning brick   
 		 */
@@ -526,7 +543,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 25){
-						switch (parseInt(getRandom(5))) {
+						switch (parseInt(getRandom(6))) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -545,13 +562,15 @@ window.onload = function() {
 							case 5: 
 								generateGoody("disease", x, y, 15);
 								break;
+							case 6: 
+								generateGoody("invincible", x, y, 16);
+								break;
 							default:
 								break;
 						}
 					}
 					this.destroy();
                 }, 500)				
-				
 			}
 		});
 		
@@ -564,10 +583,11 @@ window.onload = function() {
 			yDeath: 0,	
 			maxBombs: 1,
 			speed: 1.5,
-			fireRange: 3,
+			fireRange: 2,
 			timeTillExplode: 3,
 			timeFuze:false,
 			_bombset: false,
+			invincible: false,
 			CustomControls: function(speed, maxBombs) {
 				if(speed) this.speed = speed;
 				if(maxBombs) this.maxBombs = maxBombs;
@@ -614,7 +634,9 @@ window.onload = function() {
 					//default movement booleans to false
 					move.right = move.left = move.down = move.up = false;
 					if(e.keyCode === Crafty.keys.W) {
-						printField();
+						//player.toggleComponent("Normal,Invincible");
+						this.removeComponent("Normal");
+						this.addComponent("Invincible");
 					}
 					//if keys are down, set the direction
 					if(e.keyCode === Crafty.keys.RA) move.right = true;
@@ -701,7 +723,7 @@ window.onload = function() {
 		Crafty.c("PolicemanDeath", {
 			init:function(){
 				this.addComponent("2D","DOM","SpriteAnimation", "sprite_player_death_1", "animate")
-				.animate("sprite_player_death_1", [[0,88],[32,88],[64,88],[96,88],[128,88],[160,88],[192,88],[224,88],[256,88]])
+				.animate("sprite_player_death_1", [[0,44],[32,44],[64,44],[96,44],[128,44],[160,44],[192,44],[224,44],[256,44]])
 				//.animate('sprite_player_death_1', 0, 3, 8)
 				.bind("enterframe", function(e){
 					this.animate("sprite_player_death_1", 10);
@@ -712,20 +734,38 @@ window.onload = function() {
 			}
 		});
 		
+		Crafty.c("Normal", {
+			init:function() {
+				this.animate("stay_left", [[192,0]])
+				this.animate("stay_right", [[288,0]])
+				this.animate("stay_up", [[96,0]])
+				this.animate("stay_down", [[0,0]])
+
+				this.animate("walk_left", [[192,0],[224,0],[256,0]])
+	            this.animate("walk_right", [[288,0],[320,0],[352,0]])
+	            this.animate("walk_up", [[96,0],[128,0],[160,0]])
+	            this.animate("walk_down", [[0,0],[32,0],[64,0]])
+			}
+		});
+		
+		Crafty.c("Invincible", {
+			init:function() {
+				this.animate("stay_left", [[192,88]])
+				this.animate("stay_right", [[288,88]])
+				this.animate("stay_up", [[96,88]])
+				this.animate("stay_down", [[0,88]])
+
+				this.animate("walk_left", [[192,88],[224,88],[256,88]])
+	            this.animate("walk_right", [[288,88],[320,88],[352,88]])
+	            this.animate("walk_up", [[96,88],[128,88],[160,88]])
+	            this.animate("walk_down", [[0,88],[32,88],[64,88]])
+			}
+		});
+		
 		//create our player entity with some premade components
-		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate, explodable")
+		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate, explodable, Normal")
 			.attr({x: 32, y: 32-12, z: 10})
 			.CustomControls(1.7, 1)
-			.animate("stay_left", [[192,0]])
-			.animate("stay_right", [[288,0]])
-			.animate("stay_up", [[96,0]])
-			.animate("stay_down", [[0,0]])
-			
-			.animate("walk_left", [[192,0],[224,0],[256,0]])
-            .animate("walk_right", [[288,0],[320,0],[352,0]])
-            .animate("walk_up", [[96,0],[128,0],[160,0]])
-            .animate("walk_down", [[0,0],[32,0],[64,0]])
-			
 			.bind("enterframe", function(e) {
 				if(this.__move.left) {
 					if(!this.isPlaying("walk_left"))
