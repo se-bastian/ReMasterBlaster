@@ -305,13 +305,7 @@ window.onload = function() {
 			.text("Loading")   
 			.css({"text-align": "center"});
 	});
-	
-	//automatically play the loading scene
-	Crafty.scene("loading");
-	
-	Crafty.scene("main", function() {
-		generateWorld();
-
+	function printField () {
 		var string = "";
 		for (var j = 0; j <= 14; j++) {
 			for (var i = 0; i <= 18; i++) {
@@ -321,7 +315,17 @@ window.onload = function() {
 					string+="\n";
 			}
 		};
-		
+		console.log(string);
+	}
+	
+	
+	//automatically play the loading scene
+	Crafty.scene("loading");
+	
+	Crafty.scene("main", function() {
+		generateWorld();
+
+
 		/**
 		 * gives the entity SetBomb animation and logic
 		 */
@@ -351,7 +355,6 @@ window.onload = function() {
 				var dropper = this;
 			},
 			setTriggeredBomb: function(x, y){
-				//bombsPlanted += 1;
 		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
 				.attr({x: x, y: y, z: 9})
 		        .animate('bomb', 0, 2, 2)
@@ -361,7 +364,6 @@ window.onload = function() {
 				.bind("explode", function() {
                     Crafty.e("Explode")
 					  .Explode(x, y);
-					//bombsPlanted -= 1;
 					this.destroy();				
                 })				
 			}
@@ -370,28 +372,80 @@ window.onload = function() {
 		/**
 		 * gives the entity Explode animation and logic
 		 */
-		destroyDirection = {left: true, right: true, up: true, down: true};	
-
+		
 		Crafty.c("Explode", {
 			Explode: function(x, y){
 				Crafty.e("SetFire")
 					.setFire(x, y)
+				var solidDirection = {left: false, right: false, up: false, down: false};
 				for (var i=1; i <= player.fireRange; i++) {
-					if(x + 32*i < 576){
-						Crafty.e("SetFire")
-							.setFire(x+32*i, y)
+
+					if((x + 32*i < 576)) {
+						if(i==1) {
+							if (brick_array[(x+32)/32][y/32]>1) {
+								solidDirection.right = true;
+							};
+							Crafty.e("SetFire")
+								.setFire(x+32*i, y);	
+						};
+						if ((i>=2) && !solidDirection.right) {
+							if (brick_array[(x+32*i)/32][y/32]>1) {
+								solidDirection.right=true;
+							}
+							Crafty.e("SetFire")
+								.setFire(x+32*i, y);
+						}
 					}
-					if(x - 32*i > 0){
-						Crafty.e("SetFire")
-							.setFire(x-32*i, y)
+					
+					if((x - 32*i > 0 )) {
+						if(i==1) {
+							if (brick_array[(x-32)/32][y/32]>1) {
+								solidDirection.left = true;
+							};
+							Crafty.e("SetFire")
+								.setFire(x-32*i, y);	
+						};
+						if ((i>=2) && !solidDirection.left) {
+							if (brick_array[(x-32*i)/32][y/32]>1) {
+								solidDirection.left=true;
+							}
+							Crafty.e("SetFire")
+								.setFire(x-32*i, y);
+						}
 					}
-					if(y + 32*i < 448){
-						Crafty.e("SetFire")	
-							.setFire(x, y+32*i)
+					
+					if(y + 32*i < 448) {
+						if(i==1) {
+							if (brick_array[x/32][(y+32*i)/32]>1) {
+								solidDirection.down = true;
+							};
+							Crafty.e("SetFire")
+								.setFire(x, y+32*i)
+						};
+						if ((i>=2) && !solidDirection.down) {
+							if (brick_array[x/32][(y+32*i)/32]>1) {
+								solidDirection.down=true;
+							}
+							Crafty.e("SetFire")
+								.setFire(x, y+32*i)
+						}
 					}
-					if(y - 32*i > 0){
-						Crafty.e("SetFire")
-							.setFire(x, y-32*i)
+					
+					if(y - 32*i > 0) {
+						if(i==1) {
+							if (brick_array[x/32][(y-32*i)/32]>1) {
+								solidDirection.up = true;
+							};
+							Crafty.e("SetFire")
+								.setFire(x, y-32*i)
+						};
+						if ((i>=2) && !solidDirection.up) {
+							if (brick_array[x/32][(y-32*i)/32]>1) {
+								solidDirection.up=true;
+							}
+							Crafty.e("SetFire")
+								.setFire(x, y-32*i)
+						}
 					}
 				};
 			}   
@@ -417,46 +471,27 @@ window.onload = function() {
 					this.destroy();  
                 }, 250)
 
-				switch (brick_array[x/32][y/32]) {
-					case 2:
-						entity_array[x/32][y/32].trigger("explode");
-						brick_array[x/32][y/32] = 0;
-						break;
-					case 3:
-						entity_array[x/32][y/32].sprite(2, 1);
-						brick_array[x/32][y/32] = 2;
-						break;
-					case 4:
-						entity_array[x/32][y/32].sprite(1, 1);
-						brick_array[x/32][y/32] = 3;
-						break;
-					case 10:
-						brick_array[x/32][y/32] = 0;
-						goody_array[x/32][y/32].trigger("explode");
-						break;
-					case 11:
-						brick_array[x/32][y/32] = 0;
-						goody_array[x/32][y/32].trigger("explode");
-						break;
-					case 12:
-						brick_array[x/32][y/32] = 0;
-						goody_array[x/32][y/32].trigger("explode");
-						break;
-					case 13:
-						brick_array[x/32][y/32] = 0;
-						goody_array[x/32][y/32].trigger("explode");
-						break;
-					case 14:
-						brick_array[x/32][y/32] = 0;
-						goody_array[x/32][y/32].trigger("explode");
-						break;
-					case 15:
-						brick_array[x/32][y/32] = 0;
-						goody_array[x/32][y/32].trigger("explode");
-						break;						
-					default:
-						brick_array[x/32][y/32] = 0;
-						break;
+				if(brick_array[x/32][y/32] < 10) {
+					switch (brick_array[x/32][y/32]) {
+						case 2:
+							entity_array[x/32][y/32].trigger("explode");
+							brick_array[x/32][y/32] = 0;
+							break;
+						case 3:
+							entity_array[x/32][y/32].sprite(2, 1);
+							brick_array[x/32][y/32] = 2;
+							break;
+						case 4:
+							entity_array[x/32][y/32].sprite(1, 1);
+							brick_array[x/32][y/32] = 3;
+							break;
+						default:
+							brick_array[x/32][y/32] = 0;
+							break;
+					}
+				} else { 
+					brick_array[x/32][y/32] = 0;
+					goody_array[x/32][y/32].trigger("explode");
 				}
 			}
 		}
@@ -529,7 +564,7 @@ window.onload = function() {
 			yDeath: 0,	
 			maxBombs: 1,
 			speed: 1.5,
-			fireRange: 2,
+			fireRange: 3,
 			timeTillExplode: 3,
 			timeFuze:false,
 			_bombset: false,
@@ -578,7 +613,9 @@ window.onload = function() {
 				}).bind('keydown', function(e) {
 					//default movement booleans to false
 					move.right = move.left = move.down = move.up = false;
-					
+					if(e.keyCode === Crafty.keys.W) {
+						printField();
+					}
 					//if keys are down, set the direction
 					if(e.keyCode === Crafty.keys.RA) move.right = true;
 					if(e.keyCode === Crafty.keys.LA) move.left = true;
