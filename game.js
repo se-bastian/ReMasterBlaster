@@ -156,7 +156,7 @@ window.onload = function() {
 		player.trigger("explode");
 	}
 	function disease (xi, yi) {
-		if(player.timeTillExplode>1000){
+		if(player.timeTillExplode>1){
 			player.attr({timeTillExplode: player.timeTillExplode - 2});
 		}
 		brick_array[xi][yi] = 0;
@@ -232,7 +232,6 @@ window.onload = function() {
 			}
 			if(brick_array[xi][yi]==5){
 				if (Math.round((player.y/32)) == yi ) {
-					console.log("up");
 					return false;
 				};
 			}
@@ -428,7 +427,6 @@ window.onload = function() {
 					.setFire(x, y)
 				var solidDirection = {left: false, right: false, up: false, down: false};
 				for (var i=1; i <= player.fireRange; i++) {
-					setTimeout(function(){	}, 1000);
 					if((x + 32*i < 576)) {
 						if(i==1) {
 							if (brick_array[(x+32)/32][y/32]>1) {
@@ -518,9 +516,14 @@ window.onload = function() {
 					if(player.xDeath == x && player.yDeath == y){
 						if(player.invincible){
 							player.removeComponent("Invincible")
-							player.addComponent("Normal");
+							player.addComponent("InvincibleVanish");
+							setTimeout(function(){
+								player.removeComponent("InvincibleVanish")
+								player.addComponent("Normal");
+								player.invincible = false;
+							},2000);
 						}else {
-							//player.trigger("explode");	
+							player.trigger("explode");	
 						}
 						
 					}
@@ -575,7 +578,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 25){
-						switch (parseInt(getRandom(6))) {
+						switch (/*parseInt(getRandom(6))*/6) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -667,7 +670,10 @@ window.onload = function() {
 					move.right = move.left = move.down = move.up = false;
 					if(e.keyCode === Crafty.keys.W) {
 						//player.toggleComponent("Normal,Invincible");
-						this.timeFuze = true;
+						//player.removeComponent("Invincible");
+						//player.addComponent("Invincible");
+						
+						player.addComponent("InvincibleVanish");
 					};
 					//if keys are down, set the direction
 					if(e.keyCode === Crafty.keys.RA) move.right = true;
@@ -798,6 +804,7 @@ window.onload = function() {
 	            this.animate("walk_right", [[288,0],[320,0],[352,0]])
 	            this.animate("walk_up", [[96,0],[128,0],[160,0]])
 	            this.animate("walk_down", [[0,0],[32,0],[64,0]])
+
 			}
 		});
 		
@@ -812,9 +819,41 @@ window.onload = function() {
 	            this.animate("walk_right", [[288,88],[320,88],[352,88]])
 	            this.animate("walk_up", [[96,88],[128,88],[160,88]])
 	            this.animate("walk_down", [[0,88],[32,88],[64,88]])
+
 			}
 		});
 		
+		Crafty.c("InvincibleVanish", {
+			init:function() {
+				this.animate('stay_left', [[192,0],[192,88]])
+				this.animate("stay_right", [[288,0],[192,88]])
+				this.animate("stay_up", [[96,0],[96,88]])
+				this.animate("stay_down", [[0,0], [0,88]])
+
+				this.animate("walk_left", [[192,0],[224,88],[256,0]])
+	            this.animate("walk_right", [[288,0],[320,88],[352,0]])
+	            this.animate("walk_up", [[96,0],[128,88],[160,0]])
+	            this.animate("walk_down", [[0,0],[32,88],[64,0]])
+				this.bind("enterframe", function(e) {
+					if(this.__move.left) {
+						if(!this.isPlaying("walk_left"))
+							this.stop().animate("walk_left", 10);
+					}
+					if(this.__move.right) {
+						if(!this.isPlaying("walk_right"))
+							this.stop().animate("walk_right", 10);
+					}
+					if(this.__move.up) {
+						if(!this.isPlaying("walk_up"))
+							this.stop().animate("walk_up", 10);
+					}
+					if(this.__move.down) {
+						if(!this.isPlaying("walk_down"))
+							this.stop().animate("walk_down", 10);
+					}
+				})
+			}
+		});
 		//create our player entity with some premade components
 		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate, explodable, Normal")
 			.attr({x: 32, y: 32-12, z: 10})
