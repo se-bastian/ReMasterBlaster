@@ -156,7 +156,9 @@ window.onload = function() {
 		player.trigger("explode");
 	}
 	function disease (xi, yi) {
-		player.attr({timeTillExplode: player.timeTillExplode - 2});
+		if(player.timeTillExplode>1000){
+			player.attr({timeTillExplode: player.timeTillExplode - 2});
+		}
 		brick_array[xi][yi] = 0;
 		goody_array[xi][yi].trigger("explode");	
 	}
@@ -301,7 +303,6 @@ window.onload = function() {
 				brick_array[i][j] = 0;
 				entity_array[i][j] = 0;
 				goody_array[i][j] = 0;
-				bomb_array[i][j] = 0;
 			}
 		};
 		
@@ -348,7 +349,7 @@ window.onload = function() {
 		var string = "";
 		for (var j = 0; j <= 14; j++) {
 			for (var i = 0; i <= 18; i++) {
-				string += brick_array[i][j];
+				string += goody_array[i][j];
 
 				if(i==18)
 					string+="\n";
@@ -541,7 +542,7 @@ window.onload = function() {
 							brick_array[x/32][y/32] = 3;
 							break;
 						case 5:
-						//	bomb_array[x/32][y/32].trigger("explode");
+							bomb_array[x/32][y/32].trigger("explode");
 							brick_array[x/32][y/32] = 0;
 							break;
 						default:
@@ -666,8 +667,7 @@ window.onload = function() {
 					move.right = move.left = move.down = move.up = false;
 					if(e.keyCode === Crafty.keys.W) {
 						//player.toggleComponent("Normal,Invincible");
-						this.removeComponent("Normal");
-						this.addComponent("Invincible");
+						this.timeFuze = true;
 					};
 					//if keys are down, set the direction
 					if(e.keyCode === Crafty.keys.RA) move.right = true;
@@ -694,7 +694,26 @@ window.onload = function() {
 						if(!this.timeFuze){
 							if(bombsPlanted < this.maxBombs){
 								if(!(brick_array[n/32][m/32] == 5)){
-									bomb_array[n/32][m/32] = Crafty.e("SetBomb").setBomb(n,m);
+									brick_array[n/32][m/32] = 5;
+									bombsPlanted += 1;
+									bomb_array[n/32][m/32] = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
+												.attr({x: n, y: m, z: 9})
+										        .animate('bomb', 0, 2, 2)
+												.bind("enterframe", function(e){
+													this.animate("bomb", 10);
+												})
+												.bind("explode", function() {
+													brick_array[n/32][m/32] = 0;
+								                    Crafty.e("Explode")
+													  .Explode(n, m);
+													bombsPlanted -= 1;
+													this.destroy();
+												})
+										setTimeout(function(){
+												brick_array[n/32][m/32] = 0;
+												bomb_array[n/32][m/32].trigger("explode");
+												bombsPlanted -= 1;
+							                }, player.timeTillExplode * 1000);	
 								}
 							}
 						} else {
@@ -713,7 +732,7 @@ window.onload = function() {
 									  		.Explode(n, m);
 											//bombsPlanted -= 1;
 										this.destroy();
-									})	
+									})										
 							}						
 						}
 	             };	
