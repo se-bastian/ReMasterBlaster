@@ -40,10 +40,13 @@ window.onload = function() {
 	var brick_array = new Array(19);
 	var entity_array = new Array(19);
 	var goody_array = new Array(19);
+	var bomb_array = new Array(19);
 	for (i=0; i <=18; i++){
 		brick_array[i] = new Array(15);
 		entity_array[i] = new Array(15);
 		goody_array[i] = new Array(15);
+		bomb_array[i] = new Array(15);
+		
 	};
 	
 	var string = "";
@@ -298,6 +301,7 @@ window.onload = function() {
 				brick_array[i][j] = 0;
 				entity_array[i][j] = 0;
 				goody_array[i][j] = 0;
+				bomb_array[i][j] = 0;
 			}
 		};
 		
@@ -366,16 +370,22 @@ window.onload = function() {
 		 */
 		Crafty.c("SetBomb", {
 			init:function(){
-				var dropper = this;
 			},
 			setBomb: function(x, y){
+				brick_array[x/32][y/32] = 5;
 				bombsPlanted += 1;
 		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
 				.attr({x: x, y: y, z: 9})
 		        .animate('bomb', 0, 2, 2)
 				.bind("enterframe", function(e){
-					brick_array[x/32][y/32] = 5;
 					this.animate("bomb", 10);
+				})
+				.bind("explode", function() {
+					brick_array[x/32][y/32] = 0;
+                    Crafty.e("Explode")
+					  .Explode(x, y);
+					bombsPlanted -= 1;
+					this.destroy();
 				})
 				.delay(function() {
 					brick_array[x/32][y/32] = 0;
@@ -386,12 +396,13 @@ window.onload = function() {
                 }, player.timeTillExplode * 1000)				
 			}
 		});
-				
+				/*
 		Crafty.c("SetTriggeredBomb", {
 			init:function(){
 				var dropper = this;
 			},
 			setTriggeredBomb: function(x, y){
+				brick_array[x/32][y/32] = 5;
 		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
 				.attr({x: x, y: y, z: 9})
 		        .animate('bomb', 0, 2, 2)
@@ -399,12 +410,13 @@ window.onload = function() {
 					this.animate("bomb", 10);
 				})
 				.bind("explode", function() {
+					brick_array[x/32][y/32] = 0;
                     Crafty.e("Explode")
 					  .Explode(x, y);
 					this.destroy();				
                 })				
 			}
-		});
+		});*/
 		
 		/**
 		 * gives the entity Explode animation and logic
@@ -529,6 +541,7 @@ window.onload = function() {
 							brick_array[x/32][y/32] = 3;
 							break;
 						case 5:
+						//	bomb_array[x/32][y/32].trigger("explode");
 							brick_array[x/32][y/32] = 0;
 							break;
 						default:
@@ -681,13 +694,13 @@ window.onload = function() {
 						if(!this.timeFuze){
 							if(bombsPlanted < this.maxBombs){
 								if(!(brick_array[n/32][m/32] == 5)){
-									Crafty.e("SetBomb")
-										.setBomb(n,m);
+									bomb_array[n/32][m/32] = Crafty.e("SetBomb").setBomb(n,m);
 								}
 							}
 						} else {
 							if(bombsPlanted < 1) {
 								bombsPlanted = 1;
+								brick_array[n/32][m/32] = 5;
 								triggeredBomb = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
 									.attr({x: n, y: m, z: 9})
 						        	.animate('bomb', 0, 2, 2)
@@ -695,6 +708,7 @@ window.onload = function() {
 										this.animate("bomb", 10);
 									})
 									.bind("explode", function() {
+										brick_array[n/32][m/32] = 0;
 				                    	Crafty.e("Explode")
 									  		.Explode(n, m);
 											//bombsPlanted -= 1;
