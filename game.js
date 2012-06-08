@@ -29,7 +29,7 @@ window.onload = function() {
 	 * Player Sprites
 	 */
 	Crafty.sprite("sprite_players.png", {
-		sprite_player_1: [0, 0, 32, 44],
+		POLICEMAN: [0, 0, 32, 44],
 		sprite_player_death_1: [0, 44, 32, 44],
 		spirte_player_Invincible: [0, 88, 32, 44]
 	});
@@ -51,13 +51,15 @@ window.onload = function() {
 	
 	var string = "";
 	var bombsPlanted = 0;
+	var PLAYER_1 = "POLICEMAN"
 	
 	/**
 	 * Returns true for a bricks and filles the 
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40 && !(i == 1 && j == 1)){
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
+			&& !(i == 1 && j == 3) && !(i == 1 && j == 4) && !(i == 2 && j == 1) && !(i == 3 && j == 2) && !(i == 4 && j == 1)){
 			//fill Array, return true
 			if(Crafty.randRange(0, 50) > 45){
 				brick_array[i][j] = 4;
@@ -169,6 +171,7 @@ window.onload = function() {
 				goody_array[x][y].trigger("explode");	
 				self.invincible = true;
 				self.addComponent("Invincible");
+				self.setInvincible(self.PLAYER);
 				break;
 			default:
 				break;
@@ -188,6 +191,11 @@ window.onload = function() {
 			if(brick_array[x][y] >= 10){
 				checkForGoody(x, y, self);
 				return false;
+			}
+			if(brick_array[x][y]==5){
+				if (Math.round(self.y+10)/32 == y ) {
+					return false;
+				};
 			}
 			return true;
 		} else {
@@ -327,7 +335,6 @@ window.onload = function() {
 		for (var j = 0; j <= 14; j++) {
 			for (var i = 0; i <= 18; i++) {
 				string += goody_array[i][j];
-
 				if(i==18)
 					string+="\n";
 			}
@@ -346,6 +353,8 @@ window.onload = function() {
 		/**
 		 * gives the entity SetBomb animation and logic
 		 */
+
+		/*
 		Crafty.c("SetBomb", {
 			init:function(){
 			},
@@ -374,7 +383,7 @@ window.onload = function() {
                 }, player.timeTillExplode * 1000)				
 			}
 		});
-				/*
+
 		Crafty.c("SetTriggeredBomb", {
 			init:function(){
 				var dropper = this;
@@ -400,9 +409,9 @@ window.onload = function() {
 		 * gives the entity Explode animation and logic
 		 */
 		Crafty.c("Explode", {
-			Explode: function(x, y){
+			Explode: function(x, y, self){
 				Crafty.e("SetFire")
-					.setFire(x, y)
+					.setFire(x, y, self)
 				var solidDirection = {left: false, right: false, up: false, down: false};
 				for (var i=1; i <= player.fireRange; i++) {
 					if((x + 32*i < 576)) {
@@ -412,14 +421,14 @@ window.onload = function() {
 							};
 
 							Crafty.e("SetFire")
-								.setFire(x+32*i, y);	
+								.setFire(x+32*i, y, self);	
 						};
 						if ((i>=2) && !solidDirection.right) {
 							if (brick_array[(x+32*i)/32][y/32]>1) {
 								solidDirection.right=true;
 							};
 							Crafty.e("SetFire")
-								.setFire(x+32*i, y);
+								.setFire(x+32*i, y, self);
 						};
 					};
 					
@@ -429,14 +438,14 @@ window.onload = function() {
 								solidDirection.left = true;
 							};
 							Crafty.e("SetFire")
-								.setFire(x-32*i, y);	
+								.setFire(x-32*i, y, self);	
 						};
 						if ((i>=2) && !solidDirection.left) {
 							if (brick_array[(x-32*i)/32][y/32]>1) {
 								solidDirection.left=true;
 							};
 							Crafty.e("SetFire")
-								.setFire(x-32*i, y);
+								.setFire(x-32*i, y, self);
 						};
 					};
 					
@@ -446,14 +455,14 @@ window.onload = function() {
 								solidDirection.down = true;
 							};
 							Crafty.e("SetFire")
-								.setFire(x, y+32*i)
+								.setFire(x, y+32*i, self)
 						};
 						if ((i>=2) && !solidDirection.down) {
 							if (brick_array[x/32][(y+32*i)/32]>1) {
 								solidDirection.down=true;
 							};
 							Crafty.e("SetFire")
-								.setFire(x, y+32*i)
+								.setFire(x, y+32*i, self)
 						};
 					};
 					
@@ -463,14 +472,14 @@ window.onload = function() {
 								solidDirection.up = true;
 							};
 							Crafty.e("SetFire")
-								.setFire(x, y-32*i)
+								.setFire(x, y-32*i, self)
 						};
 						if ((i>=2) && !solidDirection.up) {
 							if (brick_array[x/32][(y-32*i)/32]>1) {
 								solidDirection.up=true;
 							};
 							Crafty.e("SetFire")
-								.setFire(x, y-32*i)
+								.setFire(x, y-32*i, self)
 						};
 					};
 				};
@@ -478,7 +487,7 @@ window.onload = function() {
 		});
 
 		Crafty.c("SetFire", {
-			setFire:function(x, y){
+			setFire:function(x, y, self){
 				if((x == 0) || (x == 576) || (y == 0) || (y == 448)){
 					return;
 				} else {
@@ -489,19 +498,19 @@ window.onload = function() {
 					this.animate("fire", 1);
 				})
 				.delay(function() {
-					player.xDeath = xRelocator(player.x);
-					player.yDeath = yRelocator(player.y)+12;
-					if(player.xDeath == x && player.yDeath == y){
-						if(player.invincible){
-							player.removeComponent("Invincible")
-							player.addComponent("InvincibleVanish");
+					self.xDeath = xRelocator(player.x);
+					self.yDeath = yRelocator(player.y)+12;
+					if(self.xDeath == x && self.yDeath == y){
+						if(self.invincible){
+							self.removeComponent("Invincible")
+							self.addComponent("InvincibleVanish");
 							setTimeout(function(){
-								player.removeComponent("InvincibleVanish")
-								player.addComponent("Normal");
-								player.invincible = false;
+								self.removeComponent("InvincibleVanish")
+								self.addComponent("Normal");
+								self.invincible = false;
 							},2000);
 						}else {
-							player.trigger("explode");	
+							self.trigger("explode");	
 						}
 						
 					}
@@ -651,8 +660,7 @@ window.onload = function() {
 					//default movement booleans to false
 					move.right = move.left = move.down = move.up = false;
 					if(e.keyCode === Crafty.keys.W) {
-						this.addComponent("Invincible");
-						this.set(PLAYER);
+
 						
 					};
 					//if keys are down, set the direction
@@ -691,7 +699,7 @@ window.onload = function() {
 												.bind("explode", function() {
 													brick_array[xGrid/32][yGrid/32] = 0;
 								                    Crafty.e("Explode")
-													  .Explode(xGrid, yGrid);
+													  .Explode(xGrid, yGrid, self);
 													bombsPlanted -= 1;
 													this.destroy();
 												})
@@ -699,7 +707,7 @@ window.onload = function() {
 												brick_array[xGrid/32][yGrid/32] = 0;
 												bomb_array[xGrid/32][yGrid/32].trigger("explode");
 												bombsPlanted -= 1;
-							                }, player.timeTillExplode * 1000);	
+							                }, self.timeTillExplode * 1000);	
 								}
 							}
 						} else {
@@ -715,7 +723,7 @@ window.onload = function() {
 									.bind("explode", function() {
 										brick_array[xGrid/32][yGrid/32] = 0;
 				                    	Crafty.e("Explode")
-									  		.Explode(xGrid, yGrid);
+									  		.Explode(xGrid, yGrid, self);
 											//bombsPlanted -= 1;
 										this.destroy();
 									})										
@@ -758,7 +766,9 @@ window.onload = function() {
 				return this;
 			},
 			detonateTriggeredBomb: function(){
-				triggeredBomb.trigger("explode");
+				if(triggeredBomb){
+					triggeredBomb.trigger("explode");
+				}
 			}
 			
 		});
@@ -780,33 +790,34 @@ window.onload = function() {
 		
 		Crafty.c("Normal", {
 			init:function() {
-				this.animate("stay_left", [[192,0]])
-				this.animate("stay_right", [[288,0]])
-				this.animate("stay_up", [[96,0]])
-				this.animate("stay_down", [[0,0]])
+				var PLAYERCORD = 0;
+				
+				this.animate("stay_left", [[192,PLAYERCORD]])
+				this.animate("stay_right", [[288,PLAYERCORD]])
+				this.animate("stay_up", [[96,PLAYERCORD]])
+				this.animate("stay_down", [[0,PLAYERCORD]])
 
-				this.animate("walk_left", [[192,0],[224,0],[256,0]])
-	            this.animate("walk_right", [[288,0],[320,0],[352,0]])
-	            this.animate("walk_up", [[96,0],[128,0],[160,0]])
-	            this.animate("walk_down", [[0,0],[32,0],[64,0]])
-
+				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
+	            this.animate("walk_right", [[288,0],[320,PLAYERCORD],[352,PLAYERCORD]])
+	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
+	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
 			}
 		});
 		
 		Crafty.c("Invincible", {
-			set:function(PLAYER) {
+			setInvincible:function(PLAYER) {
 				if (PLAYER == "POLICEMAN") {
-					
+					PLAYERCORD = 88;
 				};
-				this.animate("stay_left", [[192,88]])
-				this.animate("stay_right", [[288,88]])
-				this.animate("stay_up", [[96,88]])
-				this.animate("stay_down", [[0,88]])
+				this.animate("stay_left", [[192,PLAYERCORD]])
+				this.animate("stay_right", [[288,PLAYERCORD]])
+				this.animate("stay_up", [[96,PLAYERCORD]])
+				this.animate("stay_down", [[0,PLAYERCORD]])
 
-				this.animate("walk_left", [[192,88],[224,88],[256,88]])
-	            this.animate("walk_right", [[288,88],[320,88],[352,88]])
-	            this.animate("walk_up", [[96,88],[128,88],[160,88]])
-	            this.animate("walk_down", [[0,88],[32,88],[64,88]])
+				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
+	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
+	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
+	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
 
 			}
 		});
@@ -843,10 +854,9 @@ window.onload = function() {
 			}
 		});
 		
-		var PLAYER_1 = "POLICEMAN"
 		
 		//create our player entity with some premade components
-		player = Crafty.e("2D, DOM, sprite_player_1, controls, CustomControls, animate, explodable, Normal")
+		player = Crafty.e("2D, DOM,"+ PLAYER_1 +", controls, CustomControls, animate, explodable, Normal")
 			.attr({x: 32, y: 32-12, z: 10})
 			.CustomControls(1.7, 10, PLAYER_1)
 			.bind("enterframe", function(e) {
