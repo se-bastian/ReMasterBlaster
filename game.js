@@ -30,8 +30,9 @@ window.onload = function() {
 	 */
 	Crafty.sprite("sprite_players.png", {
 		POLICEMAN: [0, 0, 32, 44],
-		sprite_player_death_1: [0, 44, 32, 44],
-		spirte_player_Invincible: [0, 88, 32, 44]
+		POLICEMAN_DEATH: [0, 44, 32, 44],
+		spirte_player_Invincible: [0, 88, 32, 44],
+		DUKE: [0, 132, 32, 44] 
 	});
 	
 	/**
@@ -51,8 +52,8 @@ window.onload = function() {
 	
 	var string = "";
 	var bombsPlanted = 0;
-	var PLAYER_1 = "POLICEMAN"
-	
+	var PLAYER_1 = "POLICEMAN";
+	var PLAYER_2 = "DUKE";
 	/**
 	 * Returns true for a bricks and filles the 
 	 * array with a 4 or 2 at this position
@@ -171,7 +172,7 @@ window.onload = function() {
 				goody_array[x][y].trigger("explode");	
 				self.invincible = true;
 				self.addComponent("Invincible");
-				self.setInvincible(self.PLAYER);
+				self.setInvincibleAnimation(self.PLAYER);
 				break;
 			default:
 				break;
@@ -413,7 +414,7 @@ window.onload = function() {
 				Crafty.e("SetFire")
 					.setFire(x, y, self)
 				var solidDirection = {left: false, right: false, up: false, down: false};
-				for (var i=1; i <= player.fireRange; i++) {
+				for (var i=1; i <= self.fireRange; i++) {
 					if((x + 32*i < 576)) {
 						if(i==1) {
 							if (brick_array[(x+32)/32][y/32]>1) {
@@ -498,15 +499,17 @@ window.onload = function() {
 					this.animate("fire", 1);
 				})
 				.delay(function() {
-					self.xDeath = xRelocator(player.x);
-					self.yDeath = yRelocator(player.y)+12;
+					self.xDeath = xRelocator(self.x);
+					self.yDeath = yRelocator(self.y)+12;
 					if(self.xDeath == x && self.yDeath == y){
 						if(self.invincible){
-							self.removeComponent("Invincible")
+							self.removeComponent("Invincible");
 							self.addComponent("InvincibleVanish");
+							self.setInvincibleVanishAnimation(self.PLAYER);
 							setTimeout(function(){
 								self.removeComponent("InvincibleVanish")
 								self.addComponent("Normal");
+								self.setNormalAnimation(self.PLAYER);
 								self.invincible = false;
 							},2000);
 						}else {
@@ -565,7 +568,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 25){
-						switch (/*parseInt(getRandom(6))*/3) {
+						switch (/*parseInt(getRandom(6))*/6) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -612,10 +615,11 @@ window.onload = function() {
 			_playerReferenz:0,
 			triggeredBomb: 0,
 			PLAYER: "",
-			CustomControls: function(speed, maxBombs, PLAYER) {
+			CustomControlsPlayerOne: function(speed, maxBombs, PLAYER) {
 				if(speed) this.speed = speed;
 				if(maxBombs) this.maxBombs = maxBombs;
 				if(PLAYER) this.PLAYER = PLAYER;
+				this.PLAYERDEATHCORD = getPlayerCord()
 				var move = this.__move;
 				var saveMove = this.__saveMove;
 				var bombset = this._bombset;
@@ -664,12 +668,12 @@ window.onload = function() {
 						
 					};
 					//if keys are down, set the direction
-					if(e.keyCode === Crafty.keys.RA) move.right = true;
-					if(e.keyCode === Crafty.keys.LA) move.left = true;
-					if(e.keyCode === Crafty.keys.UA) move.up = true;
-					if(e.keyCode === Crafty.keys.DA) move.down = true;
-					//if key enter is down, set new entity 
-					if(e.keyCode === Crafty.keys.A) {
+					if(e.keyCode === Crafty.keys.D) move.right = true;
+					if(e.keyCode === Crafty.keys.A) move.left = true;
+					if(e.keyCode === Crafty.keys.W) move.up = true;
+					if(e.keyCode === Crafty.keys.S) move.down = true;
+					//key 32 = SPACE
+					if(e.keyCode === 32) {
 						if(saveMove.right){
 							move.right = true;
 						}
@@ -734,27 +738,27 @@ window.onload = function() {
 					this.preventTypeaheadFind(e);
 				}).bind('keyup', function(e) {
 					//if key is released, stop moving
-					if(e.keyCode === Crafty.keys.RA) {
+					if(e.keyCode === Crafty.keys.D) {
 						move.right = false;
 						saveMove.right = false;
 						this.stop().animate("stay_right", 1);
 					}
-					if(e.keyCode === Crafty.keys.LA) {
+					if(e.keyCode === Crafty.keys.A) {
 						move.left = false;
 						saveMove.left = false;
 						this.stop().animate("stay_left", 1);
 					}
-					if(e.keyCode === Crafty.keys.UA){
+					if(e.keyCode === Crafty.keys.W){
 						move.up = false;
 						saveMove.up = false;
 						this.stop().animate("stay_up", 1);
 					} 
-					if(e.keyCode === Crafty.keys.DA) {
+					if(e.keyCode === Crafty.keys.S) {
 						move.down = saveMove.down = false;
 						this.stop().animate("stay_down", 1);
 					}
 					if(this.timeFuze){
-						if(e.keyCode === Crafty.keys.A) {
+						if(e.keyCode === 32) {
 							triggeredBomb.trigger("explode");
 							bombsPlanted = 0;
 						}
@@ -772,15 +776,31 @@ window.onload = function() {
 			}
 			
 		});
+
+		function getPlayerCord(playerString) {
+			if (playerString == "POLICEMAN") {
+				return 0;
+			} else if(playerString == "DUKE"){
+				return 132;
+			} else if(playerString == "ASIAN"){
+				return 264;
+			} else if(playerString == "GREEN"){
+				return 396;
+			} else{
+				return 1000;
+			}
+		};
 		
-		
-		Crafty.c("PolicemanDeath", {
-			init:function(){
-				this.addComponent("2D","DOM","SpriteAnimation", "sprite_player_death_1", "animate")
-				.animate("sprite_player_death_1", [[0,44],[32,44],[64,44],[96,44],[128,44],[160,44],[192,44],[224,44],[256,44]])
+		Crafty.c("DeathAnimation", {
+			setDeathAnimation:function(self){
+				var PLAYERDEATHCORD = getPlayerCord(self.PLAYER) + 44;
+				this.addComponent(self.PLAYER+"_DEATH")
+				.animate(self.PLAYER+"_DEATH", [[0,PLAYERDEATHCORD],[32,PLAYERDEATHCORD],[64,PLAYERDEATHCORD],
+				[96,PLAYERDEATHCORD],[128,PLAYERDEATHCORD],[160,PLAYERDEATHCORD],[192,PLAYERDEATHCORD],
+				[224,PLAYERDEATHCORD],[256,PLAYERDEATHCORD]])
 				//.animate('sprite_player_death_1', 0, 3, 8)
 				.bind("enterframe", function(e){
-					this.animate("sprite_player_death_1", 10);
+					this.animate(self.PLAYER+"_DEATH", 10);
 				})
 				.delay(function() {
 					this.destroy();				
@@ -789,8 +809,8 @@ window.onload = function() {
 		});
 		
 		Crafty.c("Normal", {
-			init:function() {
-				var PLAYERCORD = 0;
+			setNormalAnimation: function(PLAYER){
+				var PLAYERCORD = getPlayerCord(PLAYER);
 				
 				this.animate("stay_left", [[192,PLAYERCORD]])
 				this.animate("stay_right", [[288,PLAYERCORD]])
@@ -798,17 +818,34 @@ window.onload = function() {
 				this.animate("stay_down", [[0,PLAYERCORD]])
 
 				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
-	            this.animate("walk_right", [[288,0],[320,PLAYERCORD],[352,PLAYERCORD]])
+	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
 	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
 	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
+				this.bind("enterframe", function(e) {
+					if(this.__move.left) {
+						if(!this.isPlaying("walk_left"))
+							this.stop().animate("walk_left", 6);
+					}
+					if(this.__move.right) {
+						if(!this.isPlaying("walk_right"))
+							this.stop().animate("walk_right", 6);
+					}
+					if(this.__move.up) {
+						if(!this.isPlaying("walk_up"))
+							this.stop().animate("walk_up", 6);
+					}
+					if(this.__move.down) {
+						if(!this.isPlaying("walk_down"))
+							this.stop().animate("walk_down", 6);
+					}
+				})
 			}
 		});
 		
 		Crafty.c("Invincible", {
-			setInvincible:function(PLAYER) {
-				if (PLAYER == "POLICEMAN") {
-					PLAYERCORD = 88;
-				};
+			setInvincibleAnimation:function(PLAYER) {
+				var PLAYERCORD = getPlayerCord(PLAYER)+88;
+
 				this.animate("stay_left", [[192,PLAYERCORD]])
 				this.animate("stay_right", [[288,PLAYERCORD]])
 				this.animate("stay_up", [[96,PLAYERCORD]])
@@ -823,68 +860,36 @@ window.onload = function() {
 		});
 		
 		Crafty.c("InvincibleVanish", {
-			init:function() {
-				this.animate('stay_left', [[192,0],[192,88]])
-				this.animate("stay_right", [[288,0],[192,88]])
-				this.animate("stay_up", [[96,0],[96,88]])
-				this.animate("stay_down", [[0,0], [0,88]])
+			setInvincibleVanishAnimation:function(PLAYER) {
+				var PLAYERCORD = getPlayerCord(PLAYER);
 
-				this.animate("walk_left", [[192,0],[224,88],[256,0]])
-	            this.animate("walk_right", [[288,0],[320,88],[352,0]])
-	            this.animate("walk_up", [[96,0],[128,88],[160,0]])
-	            this.animate("walk_down", [[0,0],[32,88],[64,0]])
-				this.bind("enterframe", function(e) {
-					if(this.__move.left) {
-						if(!this.isPlaying("walk_left"))
-							this.stop().animate("walk_left", 10);
-					}
-					if(this.__move.right) {
-						if(!this.isPlaying("walk_right"))
-							this.stop().animate("walk_right", 10);
-					}
-					if(this.__move.up) {
-						if(!this.isPlaying("walk_up"))
-							this.stop().animate("walk_up", 10);
-					}
-					if(this.__move.down) {
-						if(!this.isPlaying("walk_down"))
-							this.stop().animate("walk_down", 10);
-					}
-				})
+				this.animate('stay_left', [[192,PLAYERCORD],[192,PLAYERCORD + 88]])
+				this.animate("stay_right", [[288,PLAYERCORD],[192,PLAYERCORD + 88]])
+				this.animate("stay_up", [[96,PLAYERCORD],[96,PLAYERCORD + 88]])
+				this.animate("stay_down", [[0,PLAYERCORD], [0,PLAYERCORD + 88]])
+
+				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD + 88],[256,PLAYERCORD]])
+	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD + 88],[352,PLAYERCORD]])
+	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD + 88],[160,PLAYERCORD]])
+	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD + 88],[64,PLAYERCORD]])
 			}
 		});
 		
 		
 		//create our player entity with some premade components
-		player = Crafty.e("2D, DOM,"+ PLAYER_1 +", controls, CustomControls, animate, explodable, Normal")
+		player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", controls, CustomControls, animate, explodable, Normal")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControls(1.7, 10, PLAYER_1)
-			.bind("enterframe", function(e) {
-				if(this.__move.left) {
-					if(!this.isPlaying("walk_left"))
-						this.stop().animate("walk_left", 6);
-				}
-				if(this.__move.right) {
-					if(!this.isPlaying("walk_right"))
-						this.stop().animate("walk_right", 6);
-				}
-				if(this.__move.up) {
-					if(!this.isPlaying("walk_up"))
-						this.stop().animate("walk_up", 6);
-				}
-				if(this.__move.down) {
-					if(!this.isPlaying("walk_down"))
-						this.stop().animate("walk_down", 6);
-				}
-			})
+			.CustomControlsPlayerOne(1.7, 10, PLAYER_1)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
 				}
-				Crafty.e("PolicemanDeath")
-					.attr({x: this.xDeath, y: this.yDeath-12, z: 10});
+				Crafty.e("DeathAnimation", "2D","DOM","SpriteAnimation", "animate")
+					.attr({x: this.xDeath, y: this.yDeath-12, z: 10})
+					.setDeathAnimation(this);
 				console.log("player Killed");
 				this.destroy();
 			})
+			.setNormalAnimation(PLAYER_1);		
 	});
 };
