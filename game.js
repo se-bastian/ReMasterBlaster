@@ -51,7 +51,6 @@ window.onload = function() {
 	};
 	
 	var string = "";
-	var bombsPlanted = 0;
 	var PLAYER_1 = "POLICEMAN";
 	var PLAYER_2 = "DUKE";
 	/**
@@ -612,14 +611,14 @@ window.onload = function() {
 			timeFuze:false,
 			_bombset: false,
 			invincible: false,
-			_playerReferenz:0,
 			triggeredBomb: 0,
+			bombsPlanted: 0,
 			PLAYER: "",
-			CustomControlsPlayerOne: function(speed, maxBombs, PLAYER) {
+			CustomControlsPlayer: function(speed, maxBombs, PLAYER) {
 				if(speed) this.speed = speed;
 				if(maxBombs) this.maxBombs = maxBombs;
 				if(PLAYER) this.PLAYER = PLAYER;
-				this.PLAYERDEATHCORD = getPlayerCord()
+				this.PLAYERDEATHCORD = getPlayerCord();
 				var move = this.__move;
 				var saveMove = this.__saveMove;
 				var bombset = this._bombset;
@@ -690,10 +689,10 @@ window.onload = function() {
 						var yGrid = yRelocator(this.y)+12;
 						//bombset = true;
 						if(!this.timeFuze){
-							if(bombsPlanted < this.maxBombs){
+							if(this.bombsPlanted < this.maxBombs){
 								if(!(brick_array[xGrid/32][yGrid/32] == 5)){
 									brick_array[xGrid/32][yGrid/32] = 5;
-									bombsPlanted += 1;
+									this.bombsPlanted += 1;
 									bomb_array[xGrid/32][yGrid/32] = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
 												.attr({x: xGrid, y: yGrid, z: 9})
 										        .animate('bomb', 0, 2, 2)
@@ -704,19 +703,19 @@ window.onload = function() {
 													brick_array[xGrid/32][yGrid/32] = 0;
 								                    Crafty.e("Explode")
 													  .Explode(xGrid, yGrid, self);
-													bombsPlanted -= 1;
+													this.bombsPlanted -= 1;
 													this.destroy();
 												})
 										setTimeout(function(){
 												brick_array[xGrid/32][yGrid/32] = 0;
 												bomb_array[xGrid/32][yGrid/32].trigger("explode");
-												bombsPlanted -= 1;
+												this.bombsPlanted -= 1;
 							                }, self.timeTillExplode * 1000);	
 								}
 							}
 						} else {
-							if(bombsPlanted < 1) {
-								bombsPlanted = 1;
+							if(this.bombsPlanted < 1) {
+								this.bombsPlanted = 1;
 								brick_array[xGrid/32][yGrid/32] = 5;
 								triggeredBomb = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
 									.attr({x: xGrid, y: yGrid, z: 9})
@@ -777,6 +776,181 @@ window.onload = function() {
 			
 		});
 
+		Crafty.c('CustomControls2', {
+			__move: {left: false, right: false, up: false, down: false},	
+			__saveMove: {left: false, right: false, up: false, down: false},
+			xDeath: 0,
+			yDeath: 0,	
+			maxBombs: 1,
+			speed: 1.5,
+			fireRange: 2,
+			timeTillExplode: 3,
+			timeFuze:false,
+			_bombset: false,
+			invincible: false,
+			_playerReferenz:0,
+			triggeredBomb: 0,
+			bombsPlanted: 0,
+			PLAYER: "",
+			CustomControlsPlayer: function(speed, maxBombs, PLAYER) {
+				this.addComponent("controls");
+				if(speed) this.speed = speed;
+				if(maxBombs) this.maxBombs = maxBombs;
+				if(PLAYER) this.PLAYER = PLAYER;
+				var move = this.__move;
+				var saveMove = this.__saveMove;
+				var bombset = this._bombset;
+				var self = this;
+				this.bind('enterframe', function() {
+					//move the player in a direction depending on the booleans
+					//only move the player in one direction at a time (up/down/left/right)
+					if(move.right) {
+						//console.log(this.speed);
+						if(!solidRight(this)){
+							var r = yRelocator(this.y+12);
+							this.y = r;
+							this.x += this.speed;
+							saveMove.right = true;
+						}
+					}
+					else if(move.left) {
+						if(!solidLeft(this)){
+							var r = yRelocator(this.y+12);
+							this.y = r;
+							this.x -= this.speed; 
+							saveMove.left = true;
+						}
+					}
+					else if(move.up) {
+						if(!solidUp(this)){
+							var r = xRelocator (this.x);
+							this.x = r;
+							this.y -= this.speed;
+							saveMove.up = true;
+						}
+					}
+					else if(move.down) {
+						if(!solidDown(this)){
+							var r = xRelocator (this.x);
+							this.x = r;
+							this.y += this.speed;
+							saveMove.down = true;
+						}
+					}
+				}).bind('keydown', function(e) {
+					//default movement booleans to false
+					move.right = move.left = move.down = move.up = false;
+
+					//if keys are down, set the direction
+					if(e.keyCode === Crafty.keys.RA) move.right = true;
+					if(e.keyCode === Crafty.keys.LA) move.left = true;
+					if(e.keyCode === Crafty.keys.UA) move.up = true;
+					if(e.keyCode === Crafty.keys.DA) move.down = true;
+
+					if(e.keyCode === Crafty.keys.ALT) {
+						if(saveMove.right){
+							move.right = true;
+						}
+						else if(saveMove.left){
+							move.left = true;
+						}
+						else if(saveMove.up){
+								move.up = true;
+						}
+						else if(saveMove.down){
+							move.down = true;
+						}
+						var xGrid = xRelocator (this.x);
+						var yGrid = yRelocator(this.y)+12;
+						//bombset = true;
+						if(!this.timeFuze){
+							if(this.bombsPlanted < this.maxBombs){
+								if(!(brick_array[xGrid/32][yGrid/32] == 5)){
+									brick_array[xGrid/32][yGrid/32] = 5;
+									this.bombsPlanted += 1;
+									bomb_array[xGrid/32][yGrid/32] = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
+												.attr({x: xGrid, y: yGrid, z: 9})
+										        .animate('bomb', 0, 2, 2)
+												.bind("enterframe", function(e){
+													this.animate("bomb", 10);
+												})
+												.bind("explode", function() {
+													brick_array[xGrid/32][yGrid/32] = 0;
+								                    Crafty.e("Explode")
+													  .Explode(xGrid, yGrid, self);
+													this.bombsPlanted -= 1;
+													this.destroy();
+												})
+										setTimeout(function(){
+												brick_array[xGrid/32][yGrid/32] = 0;
+												bomb_array[xGrid/32][yGrid/32].trigger("explode");
+												this.bombsPlanted -= 1;
+							                }, self.timeTillExplode * 1000);	
+								}
+							}
+						} else {
+							if(this.bombsPlanted < 1) {
+								this.bombsPlanted = 1;
+								brick_array[xGrid/32][yGrid/32] = 5;
+								triggeredBomb = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
+									.attr({x: xGrid, y: yGrid, z: 9})
+						        	.animate('bomb', 0, 2, 2)
+									.bind("enterframe", function(e){
+										this.animate("bomb", 10);
+									})
+									.bind("explode", function() {
+										brick_array[xGrid/32][yGrid/32] = 0;
+				                    	Crafty.e("Explode")
+									  		.Explode(xGrid, yGrid, self);
+											//bombsPlanted -= 1;
+										this.destroy();
+									})										
+							}						
+						}
+	             };	
+					
+					this.preventTypeaheadFind(e);
+				}).bind('keyup', function(e) {
+					//if key is released, stop moving
+					if(e.keyCode === Crafty.keys.RA) {
+						move.right = false;
+						saveMove.right = false;
+						this.stop().animate("stay_right", 1);
+					}
+					if(e.keyCode === Crafty.keys.LA) {
+						move.left = false;
+						saveMove.left = false;
+						this.stop().animate("stay_left", 1);
+					}
+					if(e.keyCode === Crafty.keys.UA){
+						move.up = false;
+						saveMove.up = false;
+						this.stop().animate("stay_up", 1);
+					} 
+					if(e.keyCode === Crafty.keys.DA) {
+						move.down = saveMove.down = false;
+						this.stop().animate("stay_down", 1);
+					}
+					if(this.timeFuze){
+						if(e.keyCode === Crafty.keys.ALT) {
+							triggeredBomb.trigger("explode");
+							bombsPlanted = 0;
+						}
+					}			
+					this.preventTypeaheadFind(e);
+				})
+
+				
+				return this;
+			},
+			detonateTriggeredBomb: function(){
+				if(triggeredBomb){
+					triggeredBomb.trigger("explode");
+				}
+			}
+			
+		});
+
 		function getPlayerCord(playerString) {
 			if (playerString == "POLICEMAN") {
 				return 0;
@@ -808,7 +982,40 @@ window.onload = function() {
 			}
 		});
 		
-		Crafty.c("Normal", {
+		Crafty.c("Normal1", {
+			setNormalAnimation: function(PLAYER){
+				var PLAYERCORD = getPlayerCord(PLAYER);
+			
+				this.animate("stay_left", [[192,PLAYERCORD]])
+				this.animate("stay_right", [[288,PLAYERCORD]])
+				this.animate("stay_up", [[96,PLAYERCORD]])
+				this.animate("stay_down", [[0,PLAYERCORD]])
+
+				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
+	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
+	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
+	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
+				this.bind("enterframe", function(e) {
+					if(this.__move.left) {
+						if(!this.isPlaying("walk_left"))
+							this.stop().animate("walk_left", 6);
+					}
+					if(this.__move.right) {
+						if(!this.isPlaying("walk_right"))
+							this.stop().animate("walk_right", 6);
+					}
+					if(this.__move.up) {
+						if(!this.isPlaying("walk_up"))
+							this.stop().animate("walk_up", 6);
+					}
+					if(this.__move.down) {
+						if(!this.isPlaying("walk_down"))
+							this.stop().animate("walk_down", 6);
+					}
+				})
+			}
+		});
+		Crafty.c("Normal2", {
 			setNormalAnimation: function(PLAYER){
 				var PLAYERCORD = getPlayerCord(PLAYER);
 				
@@ -841,11 +1048,10 @@ window.onload = function() {
 				})
 			}
 		});
-		
 		Crafty.c("Invincible", {
 			setInvincibleAnimation:function(PLAYER) {
 				var PLAYERCORD = getPlayerCord(PLAYER)+88;
-
+				PLAYERCORD = 88;
 				this.animate("stay_left", [[192,PLAYERCORD]])
 				this.animate("stay_right", [[288,PLAYERCORD]])
 				this.animate("stay_up", [[96,PLAYERCORD]])
@@ -875,11 +1081,18 @@ window.onload = function() {
 			}
 		});
 		
-		
+		$(document).keydown(function(event){
+			console.log(event.which + " down");
+		})
+		$(document).keyup(function(event){
+			console.log(event.which+ " up");
+		})
 		//create our player entity with some premade components
-		player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", controls, CustomControls, animate, explodable, Normal")
+	
+		/*
+		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", controls, CustomControls, animate, explodable, Normal1")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControlsPlayerOne(1.7, 10, PLAYER_1)
+			.CustomControlsPlayer(1.7, 10, PLAYER_1)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
@@ -890,6 +1103,23 @@ window.onload = function() {
 				console.log("player Killed");
 				this.destroy();
 			})
-			.setNormalAnimation(PLAYER_1);		
+			.setNormalAnimation(PLAYER_1);	
+
+	
+		var player2 = Crafty.e("2D, DOM,"+ PLAYER_2 +", CustomControls2, animate, explodable, Normal2")
+			.attr({x: 32*13, y: 32*12-12, z: 10})
+			.CustomControlsPlayer(1.7, 10, PLAYER_2)
+			.bind("explode", function() {
+				if(this.timeFuze){
+					this.detonateTriggeredBomb();
+				}
+				Crafty.e("DeathAnimation", "2D","DOM","SpriteAnimation", "animate")
+					.attr({x: this.xDeath, y: this.yDeath-12, z: 10})
+					.setDeathAnimation(this);
+				console.log("player Killed");
+				this.destroy();
+			})
+			.setNormalAnimation(PLAYER_2);	
+	*/	
 	});
 };
