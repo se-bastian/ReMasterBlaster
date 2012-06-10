@@ -32,7 +32,8 @@ window.onload = function() {
 		POLICEMAN: [0, 0, 32, 44],
 		POLICEMAN_DEATH: [0, 44, 32, 44],
 		spirte_player_Invincible: [0, 88, 32, 44],
-		DUKE: [0, 132, 32, 44] 
+		DUKE: [0, 132, 32, 44],
+		DUKE_DEATH: [0, 176, 32, 44] 
 	});
 	
 	/**
@@ -49,10 +50,29 @@ window.onload = function() {
 		bomb_array[i] = new Array(15);
 		
 	};
+	var A = 65;
+	var S = 83;
+	var D = 68;
+	var W = 87;
+	var SPACE = 32;
+	
+	var LA = 37;
+	var DA = 40;
+	var RA = 39;
+	var UA = 38;
+	var ENTER = 13;
+	
 	
 	var string = "";
 	var PLAYER_1 = "POLICEMAN";
 	var PLAYER_2 = "DUKE";
+	var players = new Array(4);
+	for (var i=0; i < players.length; i++) {
+		players[i] = 0;
+	};
+
+	
+	
 	/**
 	 * Returns true for a bricks and filles the 
 	 * array with a 4 or 2 at this position
@@ -623,6 +643,7 @@ window.onload = function() {
 				var saveMove = this.__saveMove;
 				var bombset = this._bombset;
 				var self = this;
+				setReference0(this);
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
 					//only move the player in one direction at a time (up/down/left/right)
@@ -659,20 +680,20 @@ window.onload = function() {
 							saveMove.down = true;
 						}
 					}
-				}).bind('keydown', function(e) {
+				}).bind('keydownself', function(e) {
 					//default movement booleans to false
 					move.right = move.left = move.down = move.up = false;
-					if(e.keyCode === Crafty.keys.W) {
+					if(e.which === W) {
 
 						
 					};
 					//if keys are down, set the direction
-					if(e.keyCode === Crafty.keys.D) move.right = true;
-					if(e.keyCode === Crafty.keys.A) move.left = true;
-					if(e.keyCode === Crafty.keys.W) move.up = true;
-					if(e.keyCode === Crafty.keys.S) move.down = true;
+					if(e.which === D) move.right = true;
+					if(e.which === A) move.left = true;
+					if(e.which === W) move.up = true;
+					if(e.which === S) move.down = true;
 					//key 32 = SPACE
-					if(e.keyCode === 32) {
+					if(e.which === 32) {
 						if(saveMove.right){
 							move.right = true;
 						}
@@ -734,35 +755,37 @@ window.onload = function() {
 						}
 	             };	
 					
-					this.preventTypeaheadFind(e);
-				}).bind('keyup', function(e) {
+				//	this.preventTypeaheadFind(e);
+				}).bind('keyupself', function(e) {
 					//if key is released, stop moving
-					if(e.keyCode === Crafty.keys.D) {
+					if(e.which === D) {
 						move.right = false;
 						saveMove.right = false;
-						this.stop().animate("stay_right", 1);
+						this.stop().animate("stay_right_"+PLAYER, 1);
 					}
-					if(e.keyCode === Crafty.keys.A) {
+					if(e.which === A) {
 						move.left = false;
 						saveMove.left = false;
-						this.stop().animate("stay_left", 1);
+						this.stop().animate("stay_left_"+PLAYER, 1);
 					}
-					if(e.keyCode === Crafty.keys.W){
+					if(e.which === W){
 						move.up = false;
 						saveMove.up = false;
-						this.stop().animate("stay_up", 1);
+						this.stop().animate("stay_up_"+PLAYER, 1);
 					} 
-					if(e.keyCode === Crafty.keys.S) {
+					if(e.which === S) {
 						move.down = saveMove.down = false;
-						this.stop().animate("stay_down", 1);
+						this.stop().animate("stay_down_"+PLAYER, 1);
 					}
+					
+					
 					if(this.timeFuze){
-						if(e.keyCode === 32) {
+						if(e.which === SPACE) {
 							triggeredBomb.trigger("explode");
 							bombsPlanted = 0;
 						}
 					}			
-					this.preventTypeaheadFind(e);
+					//this.preventTypeaheadFind(e);
 				})
 
 				
@@ -801,6 +824,7 @@ window.onload = function() {
 				var saveMove = this.__saveMove;
 				var bombset = this._bombset;
 				var self = this;
+				setReference1(this);
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
 					//only move the player in one direction at a time (up/down/left/right)
@@ -837,17 +861,17 @@ window.onload = function() {
 							saveMove.down = true;
 						}
 					}
-				}).bind('keydown', function(e) {
+				}).bind('keydownself', function(e) {
 					//default movement booleans to false
 					move.right = move.left = move.down = move.up = false;
 
 					//if keys are down, set the direction
-					if(e.keyCode === Crafty.keys.RA) move.right = true;
-					if(e.keyCode === Crafty.keys.LA) move.left = true;
-					if(e.keyCode === Crafty.keys.UA) move.up = true;
-					if(e.keyCode === Crafty.keys.DA) move.down = true;
+					if(e.which === RA) move.right = true;
+					if(e.which === LA) move.left = true;
+					if(e.which === UA) move.up = true;
+					if(e.which === DA) move.down = true;
 
-					if(e.keyCode === Crafty.keys.ALT) {
+					if(e.which === ENTER) {
 						if(saveMove.right){
 							move.right = true;
 						}
@@ -909,35 +933,35 @@ window.onload = function() {
 						}
 	             };	
 					
-					this.preventTypeaheadFind(e);
-				}).bind('keyup', function(e) {
+					//this.preventTypeaheadFind(e);
+				}).bind('keyupself', function(e) {
 					//if key is released, stop moving
-					if(e.keyCode === Crafty.keys.RA) {
+					if(e.which === RA) {
 						move.right = false;
 						saveMove.right = false;
-						this.stop().animate("stay_right", 1);
+						this.stop().animate("stay_right_"+PLAYER, 1);
 					}
-					if(e.keyCode === Crafty.keys.LA) {
+					if(e.which === LA) {
 						move.left = false;
 						saveMove.left = false;
-						this.stop().animate("stay_left", 1);
+						this.stop().animate("stay_left_"+PLAYER, 1);
 					}
-					if(e.keyCode === Crafty.keys.UA){
+					if(e.which === UA){
 						move.up = false;
 						saveMove.up = false;
-						this.stop().animate("stay_up", 1);
+						this.stop().animate("stay_up_"+PLAYER, 1);
 					} 
-					if(e.keyCode === Crafty.keys.DA) {
+					if(e.which === DA) {
 						move.down = saveMove.down = false;
-						this.stop().animate("stay_down", 1);
+						this.stop().animate("stay_down_"+PLAYER, 1);
 					}
 					if(this.timeFuze){
-						if(e.keyCode === Crafty.keys.ALT) {
+						if(e.which === ENTER) {
 							triggeredBomb.trigger("explode");
 							bombsPlanted = 0;
 						}
-					}			
-					this.preventTypeaheadFind(e);
+					}		
+					//this.preventTypeaheadFind(e);
 				})
 
 				
@@ -977,6 +1001,7 @@ window.onload = function() {
 					this.animate(self.PLAYER+"_DEATH", 10);
 				})
 				.delay(function() {
+					console.log(self.PLAYER+" is dead");
 					this.destroy();				
                 }, 600)
 			}
@@ -986,81 +1011,48 @@ window.onload = function() {
 			setNormalAnimation: function(PLAYER){
 				var PLAYERCORD = getPlayerCord(PLAYER);
 			
-				this.animate("stay_left", [[192,PLAYERCORD]])
-				this.animate("stay_right", [[288,PLAYERCORD]])
-				this.animate("stay_up", [[96,PLAYERCORD]])
-				this.animate("stay_down", [[0,PLAYERCORD]])
+				this.animate("stay_left_"+PLAYER, [[192,PLAYERCORD]])
+				this.animate("stay_right_"+PLAYER, [[288,PLAYERCORD]])
+				this.animate("stay_up_"+PLAYER, [[96,PLAYERCORD]])
+				this.animate("stay_down_"+PLAYER, [[0,PLAYERCORD]])
 
-				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
-	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
-	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
-	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
+				this.animate("walk_left_"+PLAYER, [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
+	            this.animate("walk_right_"+PLAYER, [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
+	            this.animate("walk_up_"+PLAYER, [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
+	            this.animate("walk_down_"+PLAYER, [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
 				this.bind("enterframe", function(e) {
 					if(this.__move.left) {
-						if(!this.isPlaying("walk_left"))
-							this.stop().animate("walk_left", 6);
+						if(!this.isPlaying("walk_left_"+PLAYER))
+							this.stop().animate("walk_left_"+PLAYER, 6);
 					}
 					if(this.__move.right) {
-						if(!this.isPlaying("walk_right"))
-							this.stop().animate("walk_right", 6);
+						if(!this.isPlaying("walk_right_"+PLAYER))
+							this.stop().animate("walk_right_"+PLAYER, 6);
 					}
 					if(this.__move.up) {
-						if(!this.isPlaying("walk_up"))
-							this.stop().animate("walk_up", 6);
+						if(!this.isPlaying("walk_up_"+PLAYER))
+							this.stop().animate("walk_up_"+PLAYER, 6);
 					}
 					if(this.__move.down) {
-						if(!this.isPlaying("walk_down"))
-							this.stop().animate("walk_down", 6);
+						if(!this.isPlaying("walk_down_"+PLAYER))
+							this.stop().animate("walk_down_"+PLAYER, 6);
 					}
 				})
 			}
 		});
-		Crafty.c("Normal2", {
-			setNormalAnimation: function(PLAYER){
-				var PLAYERCORD = getPlayerCord(PLAYER);
-				
-				this.animate("stay_left", [[192,PLAYERCORD]])
-				this.animate("stay_right", [[288,PLAYERCORD]])
-				this.animate("stay_up", [[96,PLAYERCORD]])
-				this.animate("stay_down", [[0,PLAYERCORD]])
-
-				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
-	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
-	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
-	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
-				this.bind("enterframe", function(e) {
-					if(this.__move.left) {
-						if(!this.isPlaying("walk_left"))
-							this.stop().animate("walk_left", 6);
-					}
-					if(this.__move.right) {
-						if(!this.isPlaying("walk_right"))
-							this.stop().animate("walk_right", 6);
-					}
-					if(this.__move.up) {
-						if(!this.isPlaying("walk_up"))
-							this.stop().animate("walk_up", 6);
-					}
-					if(this.__move.down) {
-						if(!this.isPlaying("walk_down"))
-							this.stop().animate("walk_down", 6);
-					}
-				})
-			}
-		});
+		
 		Crafty.c("Invincible", {
 			setInvincibleAnimation:function(PLAYER) {
 				var PLAYERCORD = getPlayerCord(PLAYER)+88;
-				PLAYERCORD = 88;
-				this.animate("stay_left", [[192,PLAYERCORD]])
-				this.animate("stay_right", [[288,PLAYERCORD]])
-				this.animate("stay_up", [[96,PLAYERCORD]])
-				this.animate("stay_down", [[0,PLAYERCORD]])
+				this.animate("stay_left_"+PLAYER, [[192,PLAYERCORD]])
+				this.animate("stay_right_"+PLAYER, [[288,PLAYERCORD]])
+				this.animate("stay_up_"+PLAYER, [[96,PLAYERCORD]])
+				this.animate("stay_down_"+PLAYER, [[0,PLAYERCORD]])
 
-				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
-	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
-	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
-	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
+				this.animate("walk_left_"+PLAYER, [[192,PLAYERCORD],[224,PLAYERCORD],[256,PLAYERCORD]])
+	            this.animate("walk_right_"+PLAYER, [[288,PLAYERCORD],[320,PLAYERCORD],[352,PLAYERCORD]])
+	            this.animate("walk_up_"+PLAYER, [[96,PLAYERCORD],[128,PLAYERCORD],[160,PLAYERCORD]])
+	            this.animate("walk_down_"+PLAYER, [[0,PLAYERCORD],[32,PLAYERCORD],[64,PLAYERCORD]])
 
 			}
 		});
@@ -1069,28 +1061,23 @@ window.onload = function() {
 			setInvincibleVanishAnimation:function(PLAYER) {
 				var PLAYERCORD = getPlayerCord(PLAYER);
 
-				this.animate('stay_left', [[192,PLAYERCORD],[192,PLAYERCORD + 88]])
-				this.animate("stay_right", [[288,PLAYERCORD],[192,PLAYERCORD + 88]])
-				this.animate("stay_up", [[96,PLAYERCORD],[96,PLAYERCORD + 88]])
-				this.animate("stay_down", [[0,PLAYERCORD], [0,PLAYERCORD + 88]])
+				this.animate("stay_left_"+PLAYER, [[192,PLAYERCORD],[192,PLAYERCORD + 88]])
+				this.animate("stay_right_"+PLAYER, [[288,PLAYERCORD],[192,PLAYERCORD + 88]])
+				this.animate("stay_up_"+PLAYER, [[96,PLAYERCORD],[96,PLAYERCORD + 88]])
+				this.animate("stay_down_"+PLAYER, [[0,PLAYERCORD], [0,PLAYERCORD + 88]])
 
-				this.animate("walk_left", [[192,PLAYERCORD],[224,PLAYERCORD + 88],[256,PLAYERCORD]])
-	            this.animate("walk_right", [[288,PLAYERCORD],[320,PLAYERCORD + 88],[352,PLAYERCORD]])
-	            this.animate("walk_up", [[96,PLAYERCORD],[128,PLAYERCORD + 88],[160,PLAYERCORD]])
-	            this.animate("walk_down", [[0,PLAYERCORD],[32,PLAYERCORD + 88],[64,PLAYERCORD]])
+				this.animate("walk_left_"+PLAYER, [[192,PLAYERCORD],[224,PLAYERCORD + 88],[256,PLAYERCORD]])
+	            this.animate("walk_right_"+PLAYER, [[288,PLAYERCORD],[320,PLAYERCORD + 88],[352,PLAYERCORD]])
+	            this.animate("walk_up_"+PLAYER, [[96,PLAYERCORD],[128,PLAYERCORD + 88],[160,PLAYERCORD]])
+	            this.animate("walk_down_"+PLAYER, [[0,PLAYERCORD],[32,PLAYERCORD + 88],[64,PLAYERCORD]])
 			}
 		});
 		
-		$(document).keydown(function(event){
-			console.log(event.which + " down");
-		})
-		$(document).keyup(function(event){
-			console.log(event.which+ " up");
-		})
+
 		//create our player entity with some premade components
 	
-		/*
-		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", controls, CustomControls, animate, explodable, Normal1")
+		
+		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", CustomControls, animate, explodable, Normal1")
 			.attr({x: 32, y: 32-12, z: 10})
 			.CustomControlsPlayer(1.7, 10, PLAYER_1)
 			.bind("explode", function() {
@@ -1100,13 +1087,11 @@ window.onload = function() {
 				Crafty.e("DeathAnimation", "2D","DOM","SpriteAnimation", "animate")
 					.attr({x: this.xDeath, y: this.yDeath-12, z: 10})
 					.setDeathAnimation(this);
-				console.log("player Killed");
 				this.destroy();
 			})
 			.setNormalAnimation(PLAYER_1);	
-
-	
-		var player2 = Crafty.e("2D, DOM,"+ PLAYER_2 +", CustomControls2, animate, explodable, Normal2")
+			
+		var player2 = Crafty.e("2D, DOM,"+ PLAYER_2 +", CustomControls2, animate, explodable, Normal1")
 			.attr({x: 32*13, y: 32*12-12, z: 10})
 			.CustomControlsPlayer(1.7, 10, PLAYER_2)
 			.bind("explode", function() {
@@ -1116,10 +1101,73 @@ window.onload = function() {
 				Crafty.e("DeathAnimation", "2D","DOM","SpriteAnimation", "animate")
 					.attr({x: this.xDeath, y: this.yDeath-12, z: 10})
 					.setDeathAnimation(this);
-				console.log("player Killed");
 				this.destroy();
 			})
-			.setNormalAnimation(PLAYER_2);	
-	*/	
+			.setNormalAnimation(PLAYER_2);
+			
+		function setReference0(self){
+			players[0] = self;
+		}
+		function setReference1(self){
+			players[1] = self;
+		}
+		
+		$(document).keydown(function(event){
+			//console.log(players[0].__move.down);
+			//console.log(event.which + " down");
+			var p0 = false;
+			var p1 = false;
+			switch (event.which) {
+				case A: p1 = true;	break;
+				case S: p1 = true;	break;
+				case D: p1 = true;	break;
+				case W: p1 = true;	break;
+				case SPACE: p1 = true;	break;
+				default: p1 = false; break;
+			}		
+			if(p1){
+				players[0].trigger("keydownself", event);
+			}
+			switch (event.which) {
+				case LA: p2 = true;	break;
+				case DA: p2 = true;	break;
+				case RA: p2 = true;	break;
+				case UA: p2 = true;	break;
+				case ENTER: p2 = true;	break;
+				default: p2 = false; break;
+			}
+		
+			if (p2){
+				players[1].trigger("keydownself", event);
+			}
+		})
+		$(document).keyup(function(event){
+			//console.log(event.which+ " up");
+			var p0 = false;
+			var p1 = false;
+			switch (event.which) {
+				case A: p1 = true;	break;
+				case S: p1 = true;	break;
+				case D: p1 = true;	break;
+				case W: p1 = true;	break;
+				case SPACE: p1 = true;	break;
+				default: p1 = false; break;
+			}
+			if(p1){
+				players[0].trigger("keyupself", event);
+			}
+			switch (event.which) {
+				case LA: p2 = true;	break;
+				case DA: p2 = true;	break;
+				case RA: p2 = true;	break;
+				case UA: p2 = true;	break;
+				case ENTER: p2 = true;	break;
+				default: p2 = false; break;
+			}
+			if (p2){
+				players[1].trigger("keyupself", event);
+			}
+		})
+
 	});
 };
