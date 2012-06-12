@@ -43,12 +43,13 @@ window.onload = function() {
 	var entity_array = new Array(19);
 	var goody_array = new Array(19);
 	var bomb_array = new Array(19);
+	var player_position_array = new Array(19);
 	for (i=0; i <=18; i++){
 		brick_array[i] = new Array(15);
 		entity_array[i] = new Array(15);
 		goody_array[i] = new Array(15);
 		bomb_array[i] = new Array(15);
-		
+		player_position_array[i] = new Array(15);
 	};
 	var A = 65;
 	var S = 83;
@@ -78,8 +79,9 @@ window.onload = function() {
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
-			&& !(i == 1 && j == 3) && !(i == 1 && j == 4) && !(i == 2 && j == 1) && !(i == 3 && j == 2) && !(i == 4 && j == 1)){
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 10 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
+			&& !(i == 1 && j == 3) && !(i == 1 && j == 4) && !(i == 2 && j == 1) && !(i == 3 && j == 2) && !(i == 4 && j == 1)
+		    && !(i == 17 && j == 13) && !(i == 16 && j == 13) && !(i == 15 && j == 13) && !(i == 17 && j == 12) && !(i == 17 && j == 11)){
 			//fill Array, return true
 			if(Crafty.randRange(0, 50) > 45){
 				brick_array[i][j] = 4;
@@ -308,6 +310,7 @@ window.onload = function() {
 				brick_array[i][j] = 0;
 				entity_array[i][j] = 0;
 				goody_array[i][j] = 0;
+				player_position_array[i][j] = 0;
 			}
 		};
 		
@@ -362,7 +365,17 @@ window.onload = function() {
 		console.log(string);
 	}
 	
-	
+	function printArray () {
+		var string = "";
+		for (var j = 0; j <= 14; j++) {
+			for (var i = 0; i <= 18; i++) {
+				string += player_position_array[i][j];
+				if(i==18)
+					string+="\n";
+			}
+		};
+		console.log(string);
+	}
 	//automatically play the loading scene
 	Crafty.scene("loading");
 	
@@ -430,6 +443,7 @@ window.onload = function() {
 		 */
 		Crafty.c("Explode", {
 			Explode: function(x, y, self){
+				self.bombsPlanted -= 1;
 				Crafty.e("SetFire")
 					.setFire(x, y, self)
 				var solidDirection = {left: false, right: false, up: false, down: false};
@@ -520,7 +534,7 @@ window.onload = function() {
 				.delay(function() {
 					self.xDeath = xRelocator(self.x);
 					self.yDeath = yRelocator(self.y)+12;
-					if(self.xDeath == x && self.yDeath == y){
+					if(player_position_array[x/32][y/32] != 0){
 						if(self.invincible){
 							self.removeComponent("Invincible");
 							self.addComponent("InvincibleVanish");
@@ -531,10 +545,13 @@ window.onload = function() {
 								self.setNormalAnimation(self.PLAYER);
 								self.invincible = false;
 							},2000);
-						}else {
-							self.trigger("explode");	
-						}
-						
+						}else{
+							player_position_array[x/32][y/32].xDeath = xRelocator(x);
+							player_position_array[x/32][y/32].yDeath = yRelocator(y)+12;
+							
+							player_position_array[x/32][y/32].trigger("explode");
+							player_position_array[x/32][y/32] = 0;
+						}			
 					}
 					this.destroy();  
                 }, 250)
@@ -587,7 +604,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 25){
-						switch (/*parseInt(getRandom(6))*/6) {
+						switch (parseInt(getRandom(6))) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -644,9 +661,29 @@ window.onload = function() {
 				var bombset = this._bombset;
 				var self = this;
 				setReference0(this);
+				var xOldRelativePlayerPosition = 0;
+				var yOldRelativePlayerPosition = 0;
+
+				var xNewRelativePlayerPosition = xRelocator(this.x)/32;
+				var yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
+
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
 					//only move the player in one direction at a time (up/down/left/right)
+					
+					xNewRelativePlayerPosition = xRelocator(this.x)/32;
+					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
+
+					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
+						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
+						player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
+
+						xOldRelativePlayerPosition = xNewRelativePlayerPosition;
+						yOldRelativePlayerPosition = yNewRelativePlayerPosition;						
+						
+					}
+					
+
 					if(move.right) {
 						//console.log(this.speed);
 						if(!solidRight(this)){
@@ -713,7 +750,7 @@ window.onload = function() {
 							if(this.bombsPlanted < this.maxBombs){
 								if(!(brick_array[xGrid/32][yGrid/32] == 5)){
 									brick_array[xGrid/32][yGrid/32] = 5;
-									this.bombsPlanted += 1;
+									this.bombsPlanted += 1;									
 									bomb_array[xGrid/32][yGrid/32] = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
 												.attr({x: xGrid, y: yGrid, z: 9})
 										        .animate('bomb', 0, 2, 2)
@@ -724,13 +761,11 @@ window.onload = function() {
 													brick_array[xGrid/32][yGrid/32] = 0;
 								                    Crafty.e("Explode")
 													  .Explode(xGrid, yGrid, self);
-													this.bombsPlanted -= 1;
 													this.destroy();
 												})
 										setTimeout(function(){
 												brick_array[xGrid/32][yGrid/32] = 0;
 												bomb_array[xGrid/32][yGrid/32].trigger("explode");
-												this.bombsPlanted -= 1;
 							                }, self.timeTillExplode * 1000);	
 								}
 							}
@@ -825,9 +860,28 @@ window.onload = function() {
 				var bombset = this._bombset;
 				var self = this;
 				setReference1(this);
+				var xOldRelativePlayerPosition = 0;
+				var yOldRelativePlayerPosition = 0;
+
+				var xNewRelativePlayerPosition = xRelocator(this.x)/32;
+				var yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
+
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
 					//only move the player in one direction at a time (up/down/left/right)
+					
+					xNewRelativePlayerPosition = xRelocator(this.x)/32;
+					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
+
+					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
+						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
+						player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
+
+						xOldRelativePlayerPosition = xNewRelativePlayerPosition;
+						yOldRelativePlayerPosition = yNewRelativePlayerPosition;						
+						
+					}
+					
 					if(move.right) {
 						//console.log(this.speed);
 						if(!solidRight(this)){
@@ -888,6 +942,7 @@ window.onload = function() {
 						var yGrid = yRelocator(this.y)+12;
 						//bombset = true;
 						if(!this.timeFuze){
+								
 							if(this.bombsPlanted < this.maxBombs){
 								if(!(brick_array[xGrid/32][yGrid/32] == 5)){
 									brick_array[xGrid/32][yGrid/32] = 5;
@@ -902,13 +957,11 @@ window.onload = function() {
 													brick_array[xGrid/32][yGrid/32] = 0;
 								                    Crafty.e("Explode")
 													  .Explode(xGrid, yGrid, self);
-													this.bombsPlanted -= 1;
 													this.destroy();
 												})
 										setTimeout(function(){
 												brick_array[xGrid/32][yGrid/32] = 0;
 												bomb_array[xGrid/32][yGrid/32].trigger("explode");
-												this.bombsPlanted -= 1;
 							                }, self.timeTillExplode * 1000);	
 								}
 							}
@@ -1079,7 +1132,7 @@ window.onload = function() {
 		
 		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", CustomControls, animate, explodable, Normal1")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControlsPlayer(1.7, 10, PLAYER_1)
+			.CustomControlsPlayer(1.7, 1, PLAYER_1)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
@@ -1092,8 +1145,8 @@ window.onload = function() {
 			.setNormalAnimation(PLAYER_1);	
 			
 		var player2 = Crafty.e("2D, DOM,"+ PLAYER_2 +", CustomControls2, animate, explodable, Normal1")
-			.attr({x: 32*13, y: 32*12-12, z: 10})
-			.CustomControlsPlayer(1.7, 10, PLAYER_2)
+			.attr({x: 32*17, y: 32*13-12, z: 10})
+			.CustomControlsPlayer(1.7, 1, PLAYER_2)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
