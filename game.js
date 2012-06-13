@@ -79,7 +79,7 @@ window.onload = function() {
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 10 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 49 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
 			&& !(i == 1 && j == 3) && !(i == 1 && j == 4) && !(i == 2 && j == 1) && !(i == 3 && j == 2) && !(i == 4 && j == 1)
 		    && !(i == 17 && j == 13) && !(i == 16 && j == 13) && !(i == 15 && j == 13) && !(i == 17 && j == 12) && !(i == 17 && j == 11)){
 			//fill Array, return true
@@ -526,7 +526,7 @@ window.onload = function() {
 					return;
 				} else {
 		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "animate")
-				.attr({x: x, y: y, z: 9})
+				.attr({x: x, y: y, z: 100})
 		        .animate('fire', 0, 3, 5)
 				.bind("enterframe", function(e){
 					this.animate("fire", 1);
@@ -666,6 +666,7 @@ window.onload = function() {
 
 				var xNewRelativePlayerPosition = xRelocator(this.x)/32;
 				var yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
+				this.z = yNewRelativePlayerPosition+9;
 
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
@@ -673,14 +674,20 @@ window.onload = function() {
 					
 					xNewRelativePlayerPosition = xRelocator(this.x)/32;
 					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
-
+					
+					
 					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
 						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
 						player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
-
+						if(yNewRelativePlayerPosition > yOldRelativePlayerPosition){
+							this.z +=1
+						} 
+						if(yNewRelativePlayerPosition < yOldRelativePlayerPosition){
+							this.z -=1
+						}
+						
 						xOldRelativePlayerPosition = xNewRelativePlayerPosition;
 						yOldRelativePlayerPosition = yNewRelativePlayerPosition;						
-						
 					}
 					
 
@@ -752,7 +759,7 @@ window.onload = function() {
 									brick_array[xGrid/32][yGrid/32] = 5;
 									this.bombsPlanted += 1;									
 									bomb_array[xGrid/32][yGrid/32] = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
-												.attr({x: xGrid, y: yGrid, z: 9})
+												.attr({x: xGrid, y: yGrid, z: 10})
 										        .animate('bomb', 0, 2, 2)
 												.bind("enterframe", function(e){
 													this.animate("bomb", 10);
@@ -865,6 +872,7 @@ window.onload = function() {
 
 				var xNewRelativePlayerPosition = xRelocator(this.x)/32;
 				var yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
+				this.z = yNewRelativePlayerPosition+9;
 
 				this.bind('enterframe', function() {
 					//move the player in a direction depending on the booleans
@@ -872,16 +880,23 @@ window.onload = function() {
 					
 					xNewRelativePlayerPosition = xRelocator(this.x)/32;
 					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
-
+					
+					
 					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
 						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
 						player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
-
+						if(yNewRelativePlayerPosition > yOldRelativePlayerPosition){
+							this.z +=1
+						} 
+						if(yNewRelativePlayerPosition < yOldRelativePlayerPosition){
+							this.z -=1
+						}
+						
 						xOldRelativePlayerPosition = xNewRelativePlayerPosition;
 						yOldRelativePlayerPosition = yNewRelativePlayerPosition;						
-						
 					}
 					
+
 					if(move.right) {
 						//console.log(this.speed);
 						if(!solidRight(this)){
@@ -948,7 +963,7 @@ window.onload = function() {
 									brick_array[xGrid/32][yGrid/32] = 5;
 									this.bombsPlanted += 1;
 									bomb_array[xGrid/32][yGrid/32] = Crafty.e("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
-												.attr({x: xGrid, y: yGrid, z: 9})
+												.attr({x: xGrid, y: yGrid, z: 10})
 										        .animate('bomb', 0, 2, 2)
 												.bind("enterframe", function(e){
 													this.animate("bomb", 10);
