@@ -31,9 +31,14 @@ window.onload = function() {
 	Crafty.sprite("sprite_players.png", {
 		POLICEMAN: [0, 0, 32, 44],
 		POLICEMAN_DEATH: [0, 44, 32, 44],
-		spirte_player_Invincible: [0, 88, 32, 44],
 		DUKE: [0, 132, 32, 44],
-		DUKE_DEATH: [0, 176, 32, 44] 
+		DUKE_DEATH: [0, 176, 32, 44],
+		DETECTIVE: [0, 264, 32, 44],
+		DETECTIVE_DEATH: [0, 308, 32, 44],
+		GREEN: [0, 396, 32, 44],
+		GREEN_DEATH: [0, 440, 32, 44],
+		CHINESE: [0, 528, 32, 44],
+		CHINESE_DEATH: [0, 572, 32, 44]
 	});
 	
 	/**
@@ -65,9 +70,9 @@ window.onload = function() {
 	
 	
 	var string = "";
-	var PLAYER_1 = "POLICEMAN";
-	var PLAYER_2 = "DUKE";
-	var players = new Array(4);
+	var PLAYER_1 = "CHINESE";
+	var PLAYER_2 = "DETECTIVE";
+	var players = new Array(5);
 	for (var i=0; i < players.length; i++) {
 		players[i] = 0;
 	};
@@ -79,7 +84,7 @@ window.onload = function() {
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 49 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 25 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
 			&& !(i == 1 && j == 3) && !(i == 1 && j == 4) && !(i == 2 && j == 1) && !(i == 3 && j == 2) && !(i == 4 && j == 1)
 		    && !(i == 17 && j == 13) && !(i == 16 && j == 13) && !(i == 15 && j == 13) && !(i == 17 && j == 12) && !(i == 17 && j == 11)){
 			//fill Array, return true
@@ -933,8 +938,7 @@ window.onload = function() {
 				}).bind('keydownself', function(e) {
 					//default movement booleans to false
 					move.right = move.left = move.down = move.up = false;
-
-					//if keys are down, set the direction
+										//if keys are down, set the direction
 					if(e.which === RA) move.right = true;
 					if(e.which === LA) move.left = true;
 					if(e.which === UA) move.up = true;
@@ -1048,10 +1052,12 @@ window.onload = function() {
 				return 0;
 			} else if(playerString == "DUKE"){
 				return 132;
-			} else if(playerString == "ASIAN"){
+			} else if(playerString == "DETECTIVE"){
 				return 264;
 			} else if(playerString == "GREEN"){
 				return 396;
+			} else if(playerString == "CHINESE"){
+				return 528;				
 			} else{
 				return 1000;
 			}
@@ -1190,6 +1196,13 @@ window.onload = function() {
 				case S: p1 = true;	break;
 				case D: p1 = true;	break;
 				case W: p1 = true;	break;
+				case 81: console.log(players.length);
+					for (var i=0; i < players.length; i++) {
+						if(players[i] != 0)
+							console.log(players[i]);
+					};
+				break;
+				
 				case SPACE: p1 = true;	break;
 				default: p1 = false; break;
 			}		
