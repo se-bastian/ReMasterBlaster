@@ -485,7 +485,7 @@ window.onload = function() {
 						fireRangeLeft -= 1;
 						Crafty.e("SetFire")
 							.setFire(x, y, dx, dy, self, fireRangeLeft);
-					}, 100);
+					}, 150);
 			} else{}
 		}
 		});
@@ -547,7 +547,7 @@ window.onload = function() {
 			yDeath: 0,	
 			maxBombs: 1,
 			speed: 1.5,
-			fireRange: 3,
+			fireRange: 2,
 			timeTillExplode: 3,
 			timeFuze:false,
 			_bombset: false,
@@ -1057,7 +1057,7 @@ window.onload = function() {
 		
 		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", CustomControls, animate, explodable, Normal1")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControlsPlayer(1.7, 5, PLAYER_1, A, D, W, S, SPACE)
+			.CustomControlsPlayer(1.7, 1, PLAYER_1, A, D, W, S, SPACE)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
