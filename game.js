@@ -389,61 +389,6 @@ window.onload = function() {
 	Crafty.scene("main", function() {
 		generateWorld();
 
-
-		/**
-		 * gives the entity SetBomb animation and logic
-		 */
-
-		/*
-		Crafty.c("SetBomb", {
-			init:function(){
-			},
-			setBomb: function(x, y){
-				brick_array[x/32][y/32] = 5;
-				bombsPlanted += 1;
-		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable", "Explode")
-				.attr({x: x, y: y, z: 9})
-		        .animate('bomb', 0, 2, 2)
-				.bind("enterframe", function(e){
-					this.animate("bomb", 10);
-				})
-				.bind("explode", function() {
-					brick_array[x/32][y/32] = 0;
-                    Crafty.e("Explode")
-					  .Explode(x, y);
-					bombsPlanted -= 1;
-					this.destroy();
-				})
-				.delay(function() {
-					brick_array[x/32][y/32] = 0;
-                    Crafty.e("Explode")
-					  .Explode(x, y);
-					bombsPlanted -= 1;
-					this.destroy();				
-                }, player.timeTillExplode * 1000)				
-			}
-		});
-
-		Crafty.c("SetTriggeredBomb", {
-			init:function(){
-				var dropper = this;
-			},
-			setTriggeredBomb: function(x, y){
-				brick_array[x/32][y/32] = 5;
-		        this.addComponent("2D","DOM","SpriteAnimation", "bomb", "animate", "explodable")
-				.attr({x: x, y: y, z: 9})
-		        .animate('bomb', 0, 2, 2)
-				.bind("enterframe", function(e){
-					this.animate("bomb", 10);
-				})
-				.bind("explode", function() {
-					brick_array[x/32][y/32] = 0;
-                    Crafty.e("Explode")
-					  .Explode(x, y);
-					this.destroy();				
-                })				
-			}
-		});*/
 		
 		/**
 		 * gives the entity Explode animation and logic
@@ -452,144 +397,96 @@ window.onload = function() {
 			Explode: function(x, y, self){
 				self.bombsPlanted -= 1;
 				Crafty.e("SetFire")
-					.setFire(x, y, self)
-				var solidDirection = {left: false, right: false, up: false, down: false};
-				for (var i=1; i <= self.fireRange; i++) {
-					if((x + 32*i < 576)) {
-						if(i==1) {
-							if (brick_array[(x+32)/32][y/32]>1) {
-								solidDirection.right = true;
-							};
-
-							Crafty.e("SetFire")
-								.setFire(x+32*i, y, self);	
-						};
-						if ((i>=2) && !solidDirection.right) {
-							if (brick_array[(x+32*i)/32][y/32]>1) {
-								solidDirection.right=true;
-							};
-							Crafty.e("SetFire")
-								.setFire(x+32*i, y, self);
-						};
-					};
-					
-					if((x - 32*i > 0 )) {
-						if(i==1) {
-							if (brick_array[(x-32)/32][y/32]>1) {
-								solidDirection.left = true;
-							};
-							Crafty.e("SetFire")
-								.setFire(x-32*i, y, self);	
-						};
-						if ((i>=2) && !solidDirection.left) {
-							if (brick_array[(x-32*i)/32][y/32]>1) {
-								solidDirection.left=true;
-							};
-							Crafty.e("SetFire")
-								.setFire(x-32*i, y, self);
-						};
-					};
-					
-					if(y + 32*i < 448) {
-						if(i==1) {
-							if (brick_array[x/32][(y+32*i)/32]>1) {
-								solidDirection.down = true;
-							};
-							Crafty.e("SetFire")
-								.setFire(x, y+32*i, self)
-						};
-						if ((i>=2) && !solidDirection.down) {
-							if (brick_array[x/32][(y+32*i)/32]>1) {
-								solidDirection.down=true;
-							};
-							Crafty.e("SetFire")
-								.setFire(x, y+32*i, self)
-						};
-					};
-					
-					if(y - 32*i > 0) {
-						if(i==1) {
-							if (brick_array[x/32][(y-32*i)/32]>1) {
-								solidDirection.up = true;
-							};
-							Crafty.e("SetFire")
-								.setFire(x, y-32*i, self)
-						};
-						if ((i>=2) && !solidDirection.up) {
-							if (brick_array[x/32][(y-32*i)/32]>1) {
-								solidDirection.up=true;
-							};
-							Crafty.e("SetFire")
-								.setFire(x, y-32*i, self)
-						};
-					};
-				};
+					.setFire(x, y, 0, 0, self, 0);
+				this.delay(function() {
+						Crafty.e("SetFire")
+							.setFire(x, y, -1, 0, self, self.fireRange-1);
+						Crafty.e("SetFire")
+							.setFire(x, y, +1, 0, self, self.fireRange-1);
+						Crafty.e("SetFire")
+							.setFire(x, y, 0, -1, self, self.fireRange-1);
+						Crafty.e("SetFire")
+							.setFire(x, y, 0, 1, self, self.fireRange-1);
+					}, 100);
 			}   
 		});
 
 		Crafty.c("SetFire", {
-			setFire:function(x, y, self){
+			setFire:function(x, y, dx, dy, self, fireRangeLeft){
+				var x = x+(dx*32);
+				var y = y+(dy*32);
+				
 				if((x == 0) || (x == 576) || (y == 0) || (y == 448)){
 					return;
-				} else {
-		        this.addComponent("2D","DOM","SpriteAnimation", "fire", "animate")
-				.attr({x: x, y: y, z: 100})
-		        .animate('fire', 0, 3, 5)
-				.bind("enterframe", function(e){
-					this.animate("fire", 1);
-				})
-				.delay(function() {
-					self.xDeath = xRelocator(self.x);
-					self.yDeath = yRelocator(self.y)+12;
-					if(player_position_array[x/32][y/32] != 0){
-						if(self.invincible){
-							self.removeComponent("Invincible");
-							self.addComponent("InvincibleVanish");
-							self.setInvincibleVanishAnimation(self.PLAYER);
-							setTimeout(function(){
-								self.removeComponent("InvincibleVanish")
-								self.addComponent("Normal");
-								self.setNormalAnimation(self.PLAYER);
-								self.invincible = false;
-							},2000);
-						}else{
-							player_position_array[x/32][y/32].xDeath = xRelocator(x);
-							player_position_array[x/32][y/32].yDeath = yRelocator(y)+12;
+				} else if(fireRangeLeft >= 0) {
+		       	 this.addComponent("2D","DOM","SpriteAnimation", "fire", "animate")
+					.attr({x: x, y: y, z: 100})
+			        .animate('fire', 0, 3, 5)
+					.bind("enterframe", function(e){
+						this.animate("fire", 1);
+					})
+					.delay(function() {
+						self.xDeath = xRelocator(self.x);
+						self.yDeath = yRelocator(self.y)+12;
+						if(player_position_array[x/32][y/32] != 0){
+							if(self.invincible){
+								self.removeComponent("Invincible");
+								self.addComponent("InvincibleVanish");
+								self.setInvincibleVanishAnimation(self.PLAYER);
+								setTimeout(function(){
+									self.removeComponent("InvincibleVanish")
+									self.addComponent("Normal");
+									self.setNormalAnimation(self.PLAYER);
+									self.invincible = false;
+								},2000);
+							}else{
+								player_position_array[x/32][y/32].xDeath = xRelocator(x);
+								player_position_array[x/32][y/32].yDeath = yRelocator(y)+12;
 							
-							player_position_array[x/32][y/32].trigger("explode");
-							player_position_array[x/32][y/32] = 0;
-						}			
+								player_position_array[x/32][y/32].trigger("explode");
+								player_position_array[x/32][y/32] = 0;
+							}			
+						}
+						this.destroy();  
+	                }, 250);
+				
+					if(brick_array[x/32][y/32] < 10) {
+						switch (brick_array[x/32][y/32]) {
+							case 2:
+								fireRangeLeft = 0;
+								entity_array[x/32][y/32].trigger("explode");
+								brick_array[x/32][y/32] = 0;
+								break;
+							case 3:
+								fireRangeLeft = 0;
+								entity_array[x/32][y/32].sprite(2, 1);
+								brick_array[x/32][y/32] = 2;
+								break;
+							case 4:
+								fireRangeLeft = 0;
+								entity_array[x/32][y/32].sprite(1, 1);
+								brick_array[x/32][y/32] = 3;
+								break;
+							case 5:
+								fireRangeLeft = 0;
+								bomb_array[x/32][y/32].trigger("explode");
+								brick_array[x/32][y/32] = 0;
+								break;
+							default:
+								brick_array[x/32][y/32] = 0;
+								break;
+						}
+					} else { 
+						fireRangeLeft = 0;
+						brick_array[x/32][y/32] = 0;
+						goody_array[x/32][y/32].trigger("explode");
 					}
-					this.destroy();  
-                }, 250)
-
-				if(brick_array[x/32][y/32] < 10) {
-					switch (brick_array[x/32][y/32]) {
-						case 2:
-							entity_array[x/32][y/32].trigger("explode");
-							brick_array[x/32][y/32] = 0;
-							break;
-						case 3:
-							entity_array[x/32][y/32].sprite(2, 1);
-							brick_array[x/32][y/32] = 2;
-							break;
-						case 4:
-							entity_array[x/32][y/32].sprite(1, 1);
-							brick_array[x/32][y/32] = 3;
-							break;
-						case 5:
-							bomb_array[x/32][y/32].trigger("explode");
-							brick_array[x/32][y/32] = 0;
-							break;
-						default:
-							brick_array[x/32][y/32] = 0;
-							break;
-					}
-				} else { 
-					brick_array[x/32][y/32] = 0;
-					goody_array[x/32][y/32].trigger("explode");
-				}
-			}
+					this.delay(function	() {
+						fireRangeLeft -= 1;
+						Crafty.e("SetFire")
+							.setFire(x, y, dx, dy, self, fireRangeLeft);
+					}, 100);
+			} else{}
 		}
 		});
 
@@ -650,7 +547,7 @@ window.onload = function() {
 			yDeath: 0,	
 			maxBombs: 1,
 			speed: 1.5,
-			fireRange: 2,
+			fireRange: 3,
 			timeTillExplode: 3,
 			timeFuze:false,
 			_bombset: false,
@@ -865,7 +762,7 @@ window.onload = function() {
 			bombsPlanted: 0,
 			PLAYER: "",
 			CustomControlsPlayer: function(speed, maxBombs, PLAYER, L, R, U, D, B) {
-				setReference0(this);
+				setReference1(this);
 				if(speed) this.speed = speed;
 				if(maxBombs) this.maxBombs = maxBombs;
 				if(PLAYER) this.PLAYER = PLAYER;
@@ -950,8 +847,7 @@ window.onload = function() {
 					}
 				}).bind('keydownself', function(e) {
 					move.right = move.left = move.down = move.up = false;
-					if(e.which === W) {
-					};
+
 					if(e.which === costumKeys.right) move.right = true;
 					if(e.which === costumKeys.left) move.left = true;
 					if(e.which === costumKeys.up) move.up = true;
@@ -1161,7 +1057,7 @@ window.onload = function() {
 		
 		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", CustomControls, animate, explodable, Normal1")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControlsPlayer(1.7, 1, PLAYER_1, A, D, W, S, SPACE)
+			.CustomControlsPlayer(1.7, 5, PLAYER_1, A, D, W, S, SPACE)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
