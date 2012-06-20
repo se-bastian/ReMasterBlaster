@@ -133,7 +133,48 @@ window.onload = function() {
 			return destinationX;	
 		}
 	}	
-
+	function xPlayerRelocator (x) {
+		var distX = x % 32;
+		var help = 0;
+		var destinationX = 0;
+		if(x%32 == 0) {
+			return x;
+		}else {
+			if(distX > 16){
+				var help2 = x + 16 - ((x+16) % 16);
+				//destinationX = help; 
+				help = Math.round(x) + 1.0;
+				destinationX = help;
+			} else {					
+				//destinationX = x - distX;
+				help = Math.round(x) - 1.0;
+				destinationX = help;
+				
+			}
+			return destinationX;	
+		}
+	}
+	
+	function yPlayerRelocator (y) {
+		var distY = y % 32;
+		var help = 0;
+		var destinationY = 0;
+		if(y%32 == 0) {
+			return y;
+		}else {
+			if(distY > 16){
+				help = Math.round(y) + 1.0;
+				destinationY = help;
+			} else {					
+				//destinationX = x - distX;
+				help = Math.round(y) - 1.0;
+				destinationY = help;
+				
+			}
+			return destinationY+12;	
+		}
+	}
+	
 	/**
 	 * Checks if the position of the player is on the Grid,
 	 * if not, it looks for the right position for the y-axis
@@ -220,7 +261,7 @@ window.onload = function() {
 				return false;
 			}
 			if(brick_array[x][y]==5){
-				if (Math.round(self.y+10)/32 == y ) {
+				if (Math.round(self.y+12)/32 == y ) {
 					return false;
 				};
 			}
@@ -625,7 +666,7 @@ window.onload = function() {
 					}
 					else if(move.up) {
 						if(!solidUp(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y -= this.speed;
 							saveMove.up = true;
@@ -633,7 +674,7 @@ window.onload = function() {
 					}
 					else if(move.down) {
 						if(!solidDown(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y += this.speed;
 							saveMove.down = true;
@@ -831,7 +872,7 @@ window.onload = function() {
 					}
 					else if(move.up) {
 						if(!solidUp(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y -= this.speed;
 							saveMove.up = true;
@@ -839,7 +880,7 @@ window.onload = function() {
 					}
 					else if(move.down) {
 						if(!solidDown(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y += this.speed;
 							saveMove.down = true;
@@ -1057,7 +1098,7 @@ window.onload = function() {
 		
 		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", CustomControls, animate, explodable, Normal1")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControlsPlayer(1.7, 1, PLAYER_1, A, D, W, S, SPACE)
+			.CustomControlsPlayer(1.7, 10, PLAYER_1, A, D, W, S, SPACE)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
@@ -1071,7 +1112,7 @@ window.onload = function() {
 			
 		var player2 = Crafty.e("2D, DOM,"+ PLAYER_2 +", CustomControls2, animate, explodable, Normal1")
 			.attr({x: 32*17, y: 32*13-12, z: 10})
-			.CustomControlsPlayer(1.7, 1, PLAYER_2, LA, RA, UA, DA, ENTER)
+			.CustomControlsPlayer(1.7, 10, PLAYER_2, LA, RA, UA, DA, ENTER)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
