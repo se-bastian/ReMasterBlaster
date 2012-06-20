@@ -401,36 +401,13 @@ window.onload = function() {
 			.css({"text-align": "center"});
 	});
 	
-	function printField () {
-		var string = "";
-		for (var j = 0; j <= 14; j++) {
-			for (var i = 0; i <= 18; i++) {
-				string += goody_array[i][j];
-				if(i==18)
-					string+="\n";
-			}
-		};
-		console.log(string);
-	}
-	
-	function printArray () {
-		var string = "";
-		for (var j = 0; j <= 14; j++) {
-			for (var i = 0; i <= 18; i++) {
-				string += player_position_array[i][j];
-				if(i==18)
-					string+="\n";
-			}
-		};
-		console.log(string);
-	}
+
 	//automatically play the loading scene
 	Crafty.scene("loading");
 	
 	Crafty.scene("main", function() {
 		generateWorld();
 
-		
 		/**
 		 * gives the entity Explode animation and logic
 		 */
@@ -440,18 +417,33 @@ window.onload = function() {
 				Crafty.e("SetFire")
 					.setFire(x, y, 0, 0, self, 0);
 				this.delay(function() {
+						//fire left 
 						Crafty.e("SetFire")
 							.setFire(x, y, -1, 0, self, self.fireRange-1);
+						//fire right 	
 						Crafty.e("SetFire")
-							.setFire(x, y, +1, 0, self, self.fireRange-1);
+							.setFire(x, y, 1, 0, self, self.fireRange-1);
+						//fire up
 						Crafty.e("SetFire")
 							.setFire(x, y, 0, -1, self, self.fireRange-1);
+						//fire down
 						Crafty.e("SetFire")
 							.setFire(x, y, 0, 1, self, self.fireRange-1);
-					}, 100);
+				}, 100);
 			}   
 		});
-
+		
+		function removeInvincibleFromPlayer(player){
+			setTimeout(function(){
+				player.removeComponent("InvincibleVanish")
+				player.addComponent("Normal");
+				player.setNormalAnimation(player.PLAYER);
+				player.invincible = false;
+			},2000);
+		}
+		/**
+		 * Sets a fire and checks for stuff underneath
+		 */
 		Crafty.c("SetFire", {
 			setFire:function(x, y, dx, dy, self, fireRangeLeft){
 				var x = x+(dx*32);
@@ -469,25 +461,24 @@ window.onload = function() {
 					.delay(function() {
 						self.xDeath = xRelocator(self.x);
 						self.yDeath = yRelocator(self.y)+12;
-						if(player_position_array[x/32][y/32] != 0){
-							if(self.invincible){
-								self.removeComponent("Invincible");
-								self.addComponent("InvincibleVanish");
-								self.setInvincibleVanishAnimation(self.PLAYER);
-								setTimeout(function(){
-									self.removeComponent("InvincibleVanish")
-									self.addComponent("Normal");
-									self.setNormalAnimation(self.PLAYER);
-									self.invincible = false;
-								},2000);
-							}else{
-								player_position_array[x/32][y/32].xDeath = xRelocator(x);
-								player_position_array[x/32][y/32].yDeath = yRelocator(y)+12;
-							
-								player_position_array[x/32][y/32].trigger("explode");
-								player_position_array[x/32][y/32] = 0;
-							}			
-						}
+						
+						for (var i=0; i < players.length; i++) {
+			 	 			if(players[i] != undefined){							
+			 	 				if(xRelocator(players[i].x) == x && yRelocator(players[i].y)+12 == y){
+									if(players[i].invincible){
+										players[i].removeComponent("Invincible");
+										players[i].addComponent("InvincibleVanish");
+										players[i].setInvincibleVanishAnimation(players[i].PLAYER);
+										removeInvincibleFromPlayer(players[i]);
+									}else{
+										players[i].xDeath = xRelocator(x);
+										players[i].yDeath = yRelocator(y)+12;
+										players[i].trigger("explode");
+										//player_position_array[x/32][y/32] = 0;
+									}			
+								}
+							}
+			 	 		};
 						this.destroy();  
 	                }, 250);
 				
@@ -549,7 +540,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 25){
-						switch (parseInt(getRandom(6))) {
+						switch (/*parseInt(getRandom(6))*/6) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
