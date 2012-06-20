@@ -54,7 +54,6 @@ window.onload = function() {
 		entity_array[i] = new Array(15);
 		goody_array[i] = new Array(15);
 		bomb_array[i] = new Array(15);
-		player_position_array[i] = new Array(15);
 	};
 	var A = 65;
 	var S = 83;
@@ -70,14 +69,26 @@ window.onload = function() {
 	
 	
 	var string = "";
+	var MAX_PLAYERS = 2;
 	var PLAYER_1 = "CHINESE";
 	var PLAYER_2 = "DETECTIVE";
 	var players = new Array(5);
 	for (var i=0; i < players.length; i++) {
 		players[i] = undefined;
 	};
-
 	
+	
+	function checkForWinner(){
+		
+		setTimeout(function(){
+			if(MAX_PLAYERS==1){
+				for (var i=0; i < players.length; i++) {
+					if(players[i] != undefined)
+						console.log("Winner: " + players[i].PLAYER);
+					};
+			}
+		},100);
+	}
 	
 	/**
 	 * Returns true for a bricks and filles the 
@@ -356,7 +367,6 @@ window.onload = function() {
 				brick_array[i][j] = 0;
 				entity_array[i][j] = 0;
 				goody_array[i][j] = 0;
-				player_position_array[i][j] = 0;
 			}
 		};
 		
@@ -474,7 +484,6 @@ window.onload = function() {
 										players[i].xDeath = xRelocator(x);
 										players[i].yDeath = yRelocator(y)+12;
 										players[i].trigger("explode");
-										//player_position_array[x/32][y/32] = 0;
 									}			
 								}
 							}
@@ -618,17 +627,6 @@ window.onload = function() {
 					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
 					
 					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
-						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
-						try{
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
-						}catch(e){
-							console.log(e);
-							console.log(PLAYER);
-							console.log(xNewRelativePlayerPosition, yNewRelativePlayerPosition);
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition];
-						}
-						
-						
 						if(yNewRelativePlayerPosition > yOldRelativePlayerPosition){
 							this.z +=1
 						} 
@@ -824,24 +822,12 @@ window.onload = function() {
 					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
 					
 					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
-						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
-						try{
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
-						}catch(e){
-							console.log(e);
-							console.log(PLAYER);
-							console.log(xNewRelativePlayerPosition, yNewRelativePlayerPosition);
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition];
-						}
-						
-						
 						if(yNewRelativePlayerPosition > yOldRelativePlayerPosition){
 							this.z +=1
 						} 
 						if(yNewRelativePlayerPosition < yOldRelativePlayerPosition){
 							this.z -=1
 						}
-						
 						xOldRelativePlayerPosition = xNewRelativePlayerPosition;
 						yOldRelativePlayerPosition = yNewRelativePlayerPosition;						
 					}
@@ -999,6 +985,14 @@ window.onload = function() {
 			}
 		};
 		
+		function removeReference(self) {
+			for (var i=0; i < players.length; i++) {
+				if(players[i] == self){
+					players[i] = undefined;
+				}
+			};
+		};
+		
 		Crafty.c("DeathAnimation", {
 			setDeathAnimation:function(self){
 				var PLAYERDEATHCORD = getPlayerCord(self.PLAYER) + 44;
@@ -1012,6 +1006,9 @@ window.onload = function() {
 				})
 				.delay(function() {
 					console.log(self.PLAYER+" is dead");
+					MAX_PLAYERS -=1;
+					removeReference(self);
+					checkForWinner();
 					this.destroy();				
                 }, 600)
 			}
@@ -1118,10 +1115,10 @@ window.onload = function() {
 	
 		function setReference0(self){
 			players[0] = self;
-		}
+		};
 		function setReference1(self){
 			players[1] = self;
-		}
+		};
 		
 		
 		$(document).keydown(function(event){
@@ -1131,7 +1128,7 @@ window.onload = function() {
 				}
  	 		};
 
-		})
+		});
 		
 		$(document).keyup(function(event){
 			for (var i=0; i < players.length; i++) {
@@ -1139,7 +1136,7 @@ window.onload = function() {
  	 				players[i].trigger("keyupself", event);
 				}
  	 		};
-		})
+		});
 
 	});
 };
