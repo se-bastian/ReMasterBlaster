@@ -133,27 +133,7 @@ window.onload = function() {
 		}
 	};
 	
-	/**
-	 * Checks if the position of the player is on the Grid,
-	 * if not, it looks for the right position for the x-axis
-	 */
-	function xRelocator (x) {
-		var distX = x % 32;
-		var help = 0;
-		var destinationX = 0;
-		
-		if(x%32 == 0) {
-			return x;
-		}else {
-			if(distX > 16){
-				help = x + 16 - ((x+16) % 16);
-				destinationX = help; 
-			} else {					
-				destinationX = x - distX;
-			}
-			return destinationX;	
-		}
-	}	
+
 	function xPlayerRelocator (x) {
 		var distX = x % 32;
 		var help = 0;
@@ -181,18 +161,40 @@ window.onload = function() {
 		var help = 0;
 		var destinationY = 0;
 		if(y%32 == 0) {
-			return y;
+			return y-12;
 		}else {
 			if(distY > 16){
 				help = Math.round(y) + 1.0;
+				console.log(help);
 				destinationY = help;
 			} else {					
-				//destinationX = x - distX;
 				help = Math.round(y) - 1.0;
 				destinationY = help;
 				
 			}
-			return destinationY+12;	
+			return destinationY-12;	
+		}
+	}
+	
+	/**
+	 * Checks if the position of the player is on the Grid,
+	 * if not, it looks for the right position for the x-axis
+	 */
+	function xRelocator (x) {
+		var distX = x % 32;
+		var help = 0;
+		var destinationX = 0;
+		
+		if(x%32 == 0) {
+			return x;
+		}else {
+			if(distX > 16){
+				help = x + 16 - ((x+16) % 16);
+				destinationX = help; 
+			} else {					
+				destinationX = x - distX;
+			}
+			return destinationX;	
 		}
 	}
 	
@@ -650,7 +652,7 @@ window.onload = function() {
 					}
 					if(move.right) {
 						if(!solidRight(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x += this.speed;
 							saveMove.right = true;
@@ -658,7 +660,7 @@ window.onload = function() {
 					}
 					else if(move.left) {
 						if(!solidLeft(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x -= this.speed; 
 							saveMove.left = true;
