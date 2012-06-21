@@ -77,17 +77,27 @@ window.onload = function() {
 		players[i] = undefined;
 	};
 	
+	var ranking = {first:"", second:"", third:"", fourth:"", fifth:""};
 	
 	function checkForWinner(){
-		
+		var help=0;
 		setTimeout(function(){
-			if(MAX_PLAYERS==1){
+			if(MAX_PLAYERS<=1){
 				for (var i=0; i < players.length; i++) {
-					if(players[i] != undefined)
+					if(players[i] != undefined){
 						console.log("Winner: " + players[i].PLAYER);
-					};
+					}else{
+						help=+1;
+					}
+				};
+				for (var i=0; i < players.length; i++) {
+					console.log(players[i]);
+				}
+				if(help == 2){
+					console.log("Pat");
+				}
 			}
-		},100);
+		}, 700)
 	}
 	
 	/**
@@ -95,7 +105,7 @@ window.onload = function() {
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 25 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
 			&& !(i == 1 && j == 3) && !(i == 1 && j == 4) && !(i == 2 && j == 1) && !(i == 3 && j == 2) && !(i == 4 && j == 1)
 		    && !(i == 17 && j == 13) && !(i == 16 && j == 13) && !(i == 15 && j == 13) && !(i == 17 && j == 12) && !(i == 17 && j == 11)){
 			//fill Array, return true
@@ -596,6 +606,7 @@ window.onload = function() {
 			triggeredBomb: 0,
 			bombsPlanted: 0,
 			PLAYER: "",
+			
 			CustomControlsPlayer: function(speed, maxBombs, PLAYER, L, R, U, D, B) {
 				setReference0(this);
 				if(speed) this.speed = speed;
@@ -670,10 +681,10 @@ window.onload = function() {
 						}
 					}
 				}).bind('keydownself', function(e) {
-					move.right = move.left = move.down = move.up = false;
-					if(e.which === W) {
-					};
-					if(e.which === costumKeys.right) move.right = true;
+					if(e.which === costumKeys.right) {
+						saveMove.right = true;
+						move.right = true;
+					}
 					if(e.which === costumKeys.left) move.left = true;
 					if(e.which === costumKeys.up) move.up = true;
 					if(e.which === costumKeys.down) move.down = true;
@@ -864,8 +875,6 @@ window.onload = function() {
 						}
 					}
 				}).bind('keydownself', function(e) {
-					move.right = move.left = move.down = move.up = false;
-
 					if(e.which === costumKeys.right) move.right = true;
 					if(e.which === costumKeys.left) move.left = true;
 					if(e.which === costumKeys.up) move.up = true;
