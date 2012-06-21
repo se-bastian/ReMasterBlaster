@@ -38,7 +38,9 @@ window.onload = function() {
 		GREEN: [0, 396, 32, 44],
 		GREEN_DEATH: [0, 440, 32, 44],
 		CHINESE: [0, 528, 32, 44],
-		CHINESE_DEATH: [0, 572, 32, 44]
+		CHINESE_DEATH: [0, 572, 32, 44],
+		MICHA: [0, 660, 32, 44],
+		MICHA_DEATH: [0, 748, 32, 44]
 	});
 	
 	/**
@@ -70,34 +72,47 @@ window.onload = function() {
 	
 	var string = "";
 	var MAX_PLAYERS = 2;
-	var PLAYER_1 = "CHINESE";
+	var PLAYERS_ALIVE = 2;
+	var PLAYER_1 = "MICHA";
 	var PLAYER_2 = "DETECTIVE";
 	var players = new Array(5);
 	for (var i=0; i < players.length; i++) {
 		players[i] = undefined;
 	};
 	
-	var ranking = {first:"", second:"", third:"", fourth:"", fifth:""};
+	var ranking = new Array(5);
+	for (var i=1; i <= MAX_PLAYERS; i++) {
+		ranking[i] = 0;
+	};
 	
-	function checkForWinner(){
+	function checkForWinner(dyingPlayer){
 		var help=0;
-		setTimeout(function(){
-			if(MAX_PLAYERS<=1){
+
+		if(PLAYERS_ALIVE<=1){
+			for (var i=0; i < players.length; i++) {
+				if(players[i] != undefined){
+					console.log("Winner: " + players[i].PLAYER);
+				} else {
+					help = help +1;
+				}
+			};
+			if(help == 4){
 				for (var i=0; i < players.length; i++) {
 					if(players[i] != undefined){
-						console.log("Winner: " + players[i].PLAYER);
-					}else{
-						help=+1;
+						ranking[1] = players[i].PLAYER_NUMBER;
 					}
-				};
-				for (var i=0; i < players.length; i++) {
-					console.log(players[i]);
-				}
-				if(help == 2){
-					console.log("Pat");
 				}
 			}
-		}, 700)
+		}
+		
+		for (var i = MAX_PLAYERS; i >= 1; i--) {
+			if(ranking[i]==0){
+				ranking[i] = dyingPlayer.PLAYER_NUMBER;
+				break;
+			}
+		};
+		console.log("erster: " +  ranking[1]);
+		console.log("zweiter: " + ranking[2]);
 	}
 	
 	/**
@@ -136,21 +151,14 @@ window.onload = function() {
 
 	function xPlayerRelocator (x) {
 		var distX = x % 32;
-		var help = 0;
 		var destinationX = 0;
 		if(x%32 == 0) {
 			return x;
 		}else {
 			if(distX > 16){
-				var help2 = x + 16 - ((x+16) % 16);
-				//destinationX = help; 
-				help = Math.round(x) + 1.0;
-				destinationX = help;
+				destinationX = Math.round(x) + 1.0;;
 			} else {					
-				//destinationX = x - distX;
-				help = Math.round(x) - 1.0;
-				destinationX = help;
-				
+				destinationX = Math.round(x) - 1.0;;
 			}
 			return destinationX;	
 		}
@@ -158,19 +166,14 @@ window.onload = function() {
 	
 	function yPlayerRelocator (y) {
 		var distY = y % 32;
-		var help = 0;
 		var destinationY = 0;
 		if(y%32 == 0) {
 			return y-12;
 		}else {
 			if(distY > 16){
-				help = Math.round(y) + 1.0;
-				console.log(help);
-				destinationY = help;
+				destinationY = Math.round(y) + 1.0;;
 			} else {					
-				help = Math.round(y) - 1.0;
-				destinationY = help;
-				
+				destinationY = Math.round(y) - 1.0;;
 			}
 			return destinationY-12;	
 		}
@@ -182,15 +185,12 @@ window.onload = function() {
 	 */
 	function xRelocator (x) {
 		var distX = x % 32;
-		var help = 0;
-		var destinationX = 0;
-		
+		var destinationX = 0;		
 		if(x%32 == 0) {
 			return x;
 		}else {
 			if(distX > 16){
-				help = x + 16 - ((x+16) % 16);
-				destinationX = help; 
+				destinationX = x + 16 - ((x+16) % 16);; 
 			} else {					
 				destinationX = x - distX;
 			}
@@ -204,15 +204,12 @@ window.onload = function() {
 	 */
 	function yRelocator (y) {
 		var distY = y % 32;
-		var help = 0;
 		var destinationY = 0;
-		
 		if(y % 32 == 0) {
 			return y-12;
 		}else {
 			if(distY > 16){
-				help = y + 16 - ((y+16) % 16);
-				destinationY = help - 12; 
+				destinationY =  y + 16 - ((y+16) % 16) - 12;
 			} else {					
 				destinationY = y - distY - 12;
 			}
@@ -561,7 +558,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 25){
-						switch (/*parseInt(getRandom(6))*/6) {
+						switch (/*parseInt(getRandom(6))*/3) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -608,7 +605,7 @@ window.onload = function() {
 			triggeredBomb: 0,
 			bombsPlanted: 0,
 			PLAYER: "",
-			
+			PLAYER_NUMBER: 1,
 			CustomControlsPlayer: function(speed, maxBombs, PLAYER, L, R, U, D, B) {
 				setReference0(this);
 				if(speed) this.speed = speed;
@@ -804,6 +801,7 @@ window.onload = function() {
 			triggeredBomb: 0,
 			bombsPlanted: 0,
 			PLAYER: "",
+			PLAYER_NUMBER: 2,
 			CustomControlsPlayer: function(speed, maxBombs, PLAYER, L, R, U, D, B) {
 				setReference1(this);
 				if(speed) this.speed = speed;
@@ -846,7 +844,7 @@ window.onload = function() {
 					}
 					if(move.right) {
 						if(!solidRight(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x += this.speed;
 							saveMove.right = true;
@@ -854,7 +852,7 @@ window.onload = function() {
 					}
 					else if(move.left) {
 						if(!solidLeft(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x -= this.speed; 
 							saveMove.left = true;
@@ -977,9 +975,7 @@ window.onload = function() {
 					triggeredBomb.trigger("explode");
 				}
 			}
-			
 		});
-
 		function getPlayerCord(playerString) {
 			if (playerString == "POLICEMAN") {
 				return 0;
@@ -990,7 +986,9 @@ window.onload = function() {
 			} else if(playerString == "GREEN"){
 				return 396;
 			} else if(playerString == "CHINESE"){
-				return 528;				
+				return 528;			
+			} else if(playerString == "MICHA"){
+				return 660;
 			} else{
 				return 1000;
 			}
@@ -1017,9 +1015,9 @@ window.onload = function() {
 				})
 				.delay(function() {
 					console.log(self.PLAYER+" is dead");
-					MAX_PLAYERS -=1;
+					PLAYERS_ALIVE -=1;
 					removeReference(self);
-					checkForWinner();
+					checkForWinner(self);
 					this.destroy();				
                 }, 600)
 			}
