@@ -38,7 +38,9 @@ window.onload = function() {
 		GREEN: [0, 396, 32, 44],
 		GREEN_DEATH: [0, 440, 32, 44],
 		CHINESE: [0, 528, 32, 44],
-		CHINESE_DEATH: [0, 572, 32, 44]
+		CHINESE_DEATH: [0, 572, 32, 44],
+		MICHA: [0, 660, 32, 44],
+		MICHA_DEATH: [0, 748, 32, 44]
 	});
 	
 	/**
@@ -54,7 +56,6 @@ window.onload = function() {
 		entity_array[i] = new Array(15);
 		goody_array[i] = new Array(15);
 		bomb_array[i] = new Array(15);
-		player_position_array[i] = new Array(15);
 	};
 	var A = 65;
 	var S = 83;
@@ -70,21 +71,56 @@ window.onload = function() {
 	
 	
 	var string = "";
-	var PLAYER_1 = "CHINESE";
+	var MAX_PLAYERS = 2;
+	var PLAYERS_ALIVE = 2;
+	var PLAYER_1 = "MICHA";
 	var PLAYER_2 = "DETECTIVE";
 	var players = new Array(5);
 	for (var i=0; i < players.length; i++) {
 		players[i] = undefined;
 	};
-
 	
+	var ranking = new Array(5);
+	for (var i=1; i <= MAX_PLAYERS; i++) {
+		ranking[i] = 0;
+	};
+	
+	function checkForWinner(dyingPlayer){
+		var help=0;
+
+		if(PLAYERS_ALIVE<=1){
+			for (var i=0; i < players.length; i++) {
+				if(players[i] != undefined){
+					console.log("Winner: " + players[i].PLAYER);
+				} else {
+					help = help +1;
+				}
+			};
+			if(help == 4){
+				for (var i=0; i < players.length; i++) {
+					if(players[i] != undefined){
+						ranking[1] = players[i].PLAYER_NUMBER;
+					}
+				}
+			}
+		}
+		
+		for (var i = MAX_PLAYERS; i >= 1; i--) {
+			if(ranking[i]==0){
+				ranking[i] = dyingPlayer.PLAYER_NUMBER;
+				break;
+			}
+		};
+		console.log("erster: " +  ranking[1]);
+		console.log("zweiter: " + ranking[2]);
+	}
 	
 	/**
 	 * Returns true for a bricks and filles the 
 	 * array with a 4 or 2 at this position
 	 */
 	function generateBricks (i, j) {
-		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 25 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
+		if(i > 0 && i < 18 && j > 0 && j < 14 && Crafty.randRange(0, 50) > 40 && !(i == 1 && j == 1) && !(i == 1 && j == 2)
 			&& !(i == 1 && j == 3) && !(i == 1 && j == 4) && !(i == 2 && j == 1) && !(i == 3 && j == 2) && !(i == 4 && j == 1)
 		    && !(i == 17 && j == 13) && !(i == 16 && j == 13) && !(i == 15 && j == 13) && !(i == 17 && j == 12) && !(i == 17 && j == 11)){
 			//fill Array, return true
@@ -112,43 +148,68 @@ window.onload = function() {
 		}
 	};
 	
+
+	function xPlayerRelocator (x) {
+		var distX = x % 32;
+		var destinationX = 0;
+		if(x%32 == 0) {
+			return x;
+		}else {
+			if(distX > 16){
+				destinationX = Math.round(x) + 1.0;;
+			} else {					
+				destinationX = Math.round(x) - 1.0;;
+			}
+			return destinationX;	
+		}
+	}
+	
+	function yPlayerRelocator (y) {
+		var distY = y % 32;
+		var destinationY = 0;
+		if(y%32 == 0) {
+			return y-12;
+		}else {
+			if(distY > 16){
+				destinationY = Math.round(y) + 1.0;;
+			} else {					
+				destinationY = Math.round(y) - 1.0;;
+			}
+			return destinationY-12;	
+		}
+	}
+	
 	/**
 	 * Checks if the position of the player is on the Grid,
 	 * if not, it looks for the right position for the x-axis
 	 */
 	function xRelocator (x) {
 		var distX = x % 32;
-		var help = 0;
-		var destinationX = 0;
-		
+		var destinationX = 0;		
 		if(x%32 == 0) {
 			return x;
 		}else {
 			if(distX > 16){
-				help = x + 16 - ((x+16) % 16);
-				destinationX = help; 
+				destinationX = x + 16 - ((x+16) % 16);; 
 			} else {					
 				destinationX = x - distX;
 			}
 			return destinationX;	
 		}
-	}	
-
+	}
+	
 	/**
 	 * Checks if the position of the player is on the Grid,
 	 * if not, it looks for the right position for the y-axis
 	 */
 	function yRelocator (y) {
 		var distY = y % 32;
-		var help = 0;
 		var destinationY = 0;
-		
 		if(y % 32 == 0) {
 			return y-12;
 		}else {
 			if(distY > 16){
-				help = y + 16 - ((y+16) % 16);
-				destinationY = help - 12; 
+				destinationY =  y + 16 - ((y+16) % 16) - 12;
 			} else {					
 				destinationY = y - distY - 12;
 			}
@@ -220,7 +281,7 @@ window.onload = function() {
 				return false;
 			}
 			if(brick_array[x][y]==5){
-				if (Math.round(self.y+10)/32 == y ) {
+				if (Math.round(self.y+12)/32 == y ) {
 					return false;
 				};
 			}
@@ -315,7 +376,6 @@ window.onload = function() {
 				brick_array[i][j] = 0;
 				entity_array[i][j] = 0;
 				goody_array[i][j] = 0;
-				player_position_array[i][j] = 0;
 			}
 		};
 		
@@ -360,36 +420,13 @@ window.onload = function() {
 			.css({"text-align": "center"});
 	});
 	
-	function printField () {
-		var string = "";
-		for (var j = 0; j <= 14; j++) {
-			for (var i = 0; i <= 18; i++) {
-				string += goody_array[i][j];
-				if(i==18)
-					string+="\n";
-			}
-		};
-		console.log(string);
-	}
-	
-	function printArray () {
-		var string = "";
-		for (var j = 0; j <= 14; j++) {
-			for (var i = 0; i <= 18; i++) {
-				string += player_position_array[i][j];
-				if(i==18)
-					string+="\n";
-			}
-		};
-		console.log(string);
-	}
+
 	//automatically play the loading scene
 	Crafty.scene("loading");
 	
 	Crafty.scene("main", function() {
 		generateWorld();
 
-		
 		/**
 		 * gives the entity Explode animation and logic
 		 */
@@ -399,18 +436,33 @@ window.onload = function() {
 				Crafty.e("SetFire")
 					.setFire(x, y, 0, 0, self, 0);
 				this.delay(function() {
+						//fire left 
 						Crafty.e("SetFire")
 							.setFire(x, y, -1, 0, self, self.fireRange-1);
+						//fire right 	
 						Crafty.e("SetFire")
-							.setFire(x, y, +1, 0, self, self.fireRange-1);
+							.setFire(x, y, 1, 0, self, self.fireRange-1);
+						//fire up
 						Crafty.e("SetFire")
 							.setFire(x, y, 0, -1, self, self.fireRange-1);
+						//fire down
 						Crafty.e("SetFire")
 							.setFire(x, y, 0, 1, self, self.fireRange-1);
-					}, 100);
+				}, 100);
 			}   
 		});
-
+		
+		function removeInvincibleFromPlayer(player){
+			setTimeout(function(){
+				player.removeComponent("InvincibleVanish")
+				player.addComponent("Normal");
+				player.setNormalAnimation(player.PLAYER);
+				player.invincible = false;
+			},2000);
+		}
+		/**
+		 * Sets a fire and checks for stuff underneath
+		 */
 		Crafty.c("SetFire", {
 			setFire:function(x, y, dx, dy, self, fireRangeLeft){
 				var x = x+(dx*32);
@@ -428,25 +480,23 @@ window.onload = function() {
 					.delay(function() {
 						self.xDeath = xRelocator(self.x);
 						self.yDeath = yRelocator(self.y)+12;
-						if(player_position_array[x/32][y/32] != 0){
-							if(self.invincible){
-								self.removeComponent("Invincible");
-								self.addComponent("InvincibleVanish");
-								self.setInvincibleVanishAnimation(self.PLAYER);
-								setTimeout(function(){
-									self.removeComponent("InvincibleVanish")
-									self.addComponent("Normal");
-									self.setNormalAnimation(self.PLAYER);
-									self.invincible = false;
-								},2000);
-							}else{
-								player_position_array[x/32][y/32].xDeath = xRelocator(x);
-								player_position_array[x/32][y/32].yDeath = yRelocator(y)+12;
-							
-								player_position_array[x/32][y/32].trigger("explode");
-								player_position_array[x/32][y/32] = 0;
-							}			
-						}
+						
+						for (var i=0; i < players.length; i++) {
+			 	 			if(players[i] != undefined){							
+			 	 				if(xRelocator(players[i].x) == x && yRelocator(players[i].y)+12 == y){
+									if(players[i].invincible){
+										players[i].removeComponent("Invincible");
+										players[i].addComponent("InvincibleVanish");
+										players[i].setInvincibleVanishAnimation(players[i].PLAYER);
+										removeInvincibleFromPlayer(players[i]);
+									}else{
+										players[i].xDeath = xRelocator(x);
+										players[i].yDeath = yRelocator(y)+12;
+										players[i].trigger("explode");
+									}			
+								}
+							}
+			 	 		};
 						this.destroy();  
 	                }, 250);
 				
@@ -508,7 +558,7 @@ window.onload = function() {
 				})
 				.delay(function() {
 					if(Crafty.randRange(0, 50) > 25){
-						switch (parseInt(getRandom(6))) {
+						switch (/*parseInt(getRandom(6))*/3) {
 							case 0:
 								generateGoody("speed_up", x, y, 10);
 								break;
@@ -555,6 +605,7 @@ window.onload = function() {
 			triggeredBomb: 0,
 			bombsPlanted: 0,
 			PLAYER: "",
+			PLAYER_NUMBER: 1,
 			CustomControlsPlayer: function(speed, maxBombs, PLAYER, L, R, U, D, B) {
 				setReference0(this);
 				if(speed) this.speed = speed;
@@ -586,17 +637,6 @@ window.onload = function() {
 					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
 					
 					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
-						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
-						try{
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
-						}catch(e){
-							console.log(e);
-							console.log(PLAYER);
-							console.log(xNewRelativePlayerPosition, yNewRelativePlayerPosition);
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition];
-						}
-						
-						
 						if(yNewRelativePlayerPosition > yOldRelativePlayerPosition){
 							this.z +=1
 						} 
@@ -609,7 +649,7 @@ window.onload = function() {
 					}
 					if(move.right) {
 						if(!solidRight(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x += this.speed;
 							saveMove.right = true;
@@ -617,7 +657,7 @@ window.onload = function() {
 					}
 					else if(move.left) {
 						if(!solidLeft(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x -= this.speed; 
 							saveMove.left = true;
@@ -625,7 +665,7 @@ window.onload = function() {
 					}
 					else if(move.up) {
 						if(!solidUp(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y -= this.speed;
 							saveMove.up = true;
@@ -633,17 +673,17 @@ window.onload = function() {
 					}
 					else if(move.down) {
 						if(!solidDown(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y += this.speed;
 							saveMove.down = true;
 						}
 					}
 				}).bind('keydownself', function(e) {
-					move.right = move.left = move.down = move.up = false;
-					if(e.which === W) {
-					};
-					if(e.which === costumKeys.right) move.right = true;
+					if(e.which === costumKeys.right) {
+						saveMove.right = true;
+						move.right = true;
+					}
 					if(e.which === costumKeys.left) move.left = true;
 					if(e.which === costumKeys.up) move.up = true;
 					if(e.which === costumKeys.down) move.down = true;
@@ -761,6 +801,7 @@ window.onload = function() {
 			triggeredBomb: 0,
 			bombsPlanted: 0,
 			PLAYER: "",
+			PLAYER_NUMBER: 2,
 			CustomControlsPlayer: function(speed, maxBombs, PLAYER, L, R, U, D, B) {
 				setReference1(this);
 				if(speed) this.speed = speed;
@@ -792,30 +833,18 @@ window.onload = function() {
 					yNewRelativePlayerPosition = (yRelocator(this.y+12)+12)/32;
 					
 					if(xOldRelativePlayerPosition != xNewRelativePlayerPosition || yOldRelativePlayerPosition != yNewRelativePlayerPosition){
-						player_position_array[xOldRelativePlayerPosition][yOldRelativePlayerPosition] = 0;
-						try{
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition] = this;
-						}catch(e){
-							console.log(e);
-							console.log(PLAYER);
-							console.log(xNewRelativePlayerPosition, yNewRelativePlayerPosition);
-							player_position_array[xNewRelativePlayerPosition][yNewRelativePlayerPosition];
-						}
-						
-						
 						if(yNewRelativePlayerPosition > yOldRelativePlayerPosition){
 							this.z +=1
 						} 
 						if(yNewRelativePlayerPosition < yOldRelativePlayerPosition){
 							this.z -=1
 						}
-						
 						xOldRelativePlayerPosition = xNewRelativePlayerPosition;
 						yOldRelativePlayerPosition = yNewRelativePlayerPosition;						
 					}
 					if(move.right) {
 						if(!solidRight(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x += this.speed;
 							saveMove.right = true;
@@ -823,7 +852,7 @@ window.onload = function() {
 					}
 					else if(move.left) {
 						if(!solidLeft(this)){
-							var r = yRelocator(this.y+12);
+							var r = yPlayerRelocator(this.y+12);
 							this.y = r;
 							this.x -= this.speed; 
 							saveMove.left = true;
@@ -831,7 +860,7 @@ window.onload = function() {
 					}
 					else if(move.up) {
 						if(!solidUp(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y -= this.speed;
 							saveMove.up = true;
@@ -839,15 +868,13 @@ window.onload = function() {
 					}
 					else if(move.down) {
 						if(!solidDown(this)){
-							var r = xRelocator (this.x);
+							var r = xPlayerRelocator (this.x);
 							this.x = r;
 							this.y += this.speed;
 							saveMove.down = true;
 						}
 					}
 				}).bind('keydownself', function(e) {
-					move.right = move.left = move.down = move.up = false;
-
 					if(e.which === costumKeys.right) move.right = true;
 					if(e.which === costumKeys.left) move.left = true;
 					if(e.which === costumKeys.up) move.up = true;
@@ -948,9 +975,7 @@ window.onload = function() {
 					triggeredBomb.trigger("explode");
 				}
 			}
-			
 		});
-
 		function getPlayerCord(playerString) {
 			if (playerString == "POLICEMAN") {
 				return 0;
@@ -961,10 +986,20 @@ window.onload = function() {
 			} else if(playerString == "GREEN"){
 				return 396;
 			} else if(playerString == "CHINESE"){
-				return 528;				
+				return 528;			
+			} else if(playerString == "MICHA"){
+				return 660;
 			} else{
 				return 1000;
 			}
+		};
+		
+		function removeReference(self) {
+			for (var i=0; i < players.length; i++) {
+				if(players[i] == self){
+					players[i] = undefined;
+				}
+			};
 		};
 		
 		Crafty.c("DeathAnimation", {
@@ -980,6 +1015,9 @@ window.onload = function() {
 				})
 				.delay(function() {
 					console.log(self.PLAYER+" is dead");
+					PLAYERS_ALIVE -=1;
+					removeReference(self);
+					checkForWinner(self);
 					this.destroy();				
                 }, 600)
 			}
@@ -1057,7 +1095,7 @@ window.onload = function() {
 		
 		var player1 = Crafty.e("2D, DOM,"+ PLAYER_1 +", CustomControls, animate, explodable, Normal1")
 			.attr({x: 32, y: 32-12, z: 10})
-			.CustomControlsPlayer(1.7, 1, PLAYER_1, A, D, W, S, SPACE)
+			.CustomControlsPlayer(1.7, 10, PLAYER_1, A, D, W, S, SPACE)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
@@ -1071,7 +1109,7 @@ window.onload = function() {
 			
 		var player2 = Crafty.e("2D, DOM,"+ PLAYER_2 +", CustomControls2, animate, explodable, Normal1")
 			.attr({x: 32*17, y: 32*13-12, z: 10})
-			.CustomControlsPlayer(1.7, 1, PLAYER_2, LA, RA, UA, DA, ENTER)
+			.CustomControlsPlayer(1.7, 10, PLAYER_2, LA, RA, UA, DA, ENTER)
 			.bind("explode", function() {
 				if(this.timeFuze){
 					this.detonateTriggeredBomb();
@@ -1086,10 +1124,10 @@ window.onload = function() {
 	
 		function setReference0(self){
 			players[0] = self;
-		}
+		};
 		function setReference1(self){
 			players[1] = self;
-		}
+		};
 		
 		
 		$(document).keydown(function(event){
@@ -1099,7 +1137,7 @@ window.onload = function() {
 				}
  	 		};
 
-		})
+		});
 		
 		$(document).keyup(function(event){
 			for (var i=0; i < players.length; i++) {
@@ -1107,7 +1145,7 @@ window.onload = function() {
  	 				players[i].trigger("keyupself", event);
 				}
  	 		};
-		})
+		});
 
 	});
 };
