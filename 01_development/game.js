@@ -1,47 +1,12 @@
 window.onload = function() {
 	//start crafty
 	Crafty.init(608, 480);
-//	Crafty.canvas();
 	
-
 	/**
 	 * Sprites
 	 */
-	Crafty.sprite(32, "sprites.png", {
-		wall: [0, 0],
-		brick: [0, 1],
-		brick_cracked_1: [1, 1],
-		brick_cracked_2: [2, 1],
-		bomb: [0, 2],
-		fire: [0, 3],
-		burning_brick: [0, 4],
-		speed_up: [0, 5],
-		bombs_up: [1, 5],
-		fire_up: [2, 5],
-		time_fuze: [3, 5],
-		disease: [4, 5],
-		invincible: [0, 6],
-		death_skull: [0, 7],
-	    empty: [0, 5]
-	});
-	
-	/**
-	 * Player Sprites
-	 */
-	Crafty.sprite("sprite_players.png", {
-		POLICEMAN: [0, 0, 32, 44],
-		POLICEMAN_DEATH: [0, 44, 32, 44],
-		DUKE: [0, 132, 32, 44],
-		DUKE_DEATH: [0, 176, 32, 44],
-		DETECTIVE: [0, 264, 32, 44],
-		DETECTIVE_DEATH: [0, 308, 32, 44],
-		GREEN: [0, 396, 32, 44],
-		GREEN_DEATH: [0, 440, 32, 44],
-		CHINESE: [0, 528, 32, 44],
-		CHINESE_DEATH: [0, 572, 32, 44],
-		MICHA: [0, 660, 32, 44],
-		MICHA_DEATH: [0, 748, 32, 44]
-	});
+	loadSprites("environment");
+	loadSprites("players");
 	
 	/**
 	 * initialize the arrays, where bricks, goodys and entitiys shall be saved
@@ -51,12 +16,14 @@ window.onload = function() {
 	var goody_array = new Array(19);
 	var bomb_array = new Array(19);
 	var player_position_array = new Array(19);
+	
 	for (i=0; i <=18; i++){
 		brick_array[i] = new Array(15);
 		entity_array[i] = new Array(15);
 		goody_array[i] = new Array(15);
 		bomb_array[i] = new Array(15);
 	};
+	
 	var A = 65;
 	var S = 83;
 	var D = 68;
@@ -68,7 +35,6 @@ window.onload = function() {
 	var RA = 39;
 	var UA = 38;
 	var ENTER = 13;
-	
 	
 	var string = "";
 	var MAX_PLAYERS = 2;
@@ -87,7 +53,6 @@ window.onload = function() {
 	
 	function checkForWinner(dyingPlayer){
 		var help=0;
-
 		if(PLAYERS_ALIVE<=1){
 			for (var i=0; i < players.length; i++) {
 				if(players[i] != undefined){
@@ -104,7 +69,6 @@ window.onload = function() {
 				}
 			}
 		}
-		
 		for (var i = MAX_PLAYERS; i >= 1; i--) {
 			if(ranking[i]==0){
 				ranking[i] = dyingPlayer.PLAYER_NUMBER;
@@ -267,11 +231,9 @@ window.onload = function() {
 	}
 	
 	/**
-	 * Solid-testfunctions - returns true if there is a number >= 1 for a solid block
+	 * Solid-testfunction - returns true if there is a number >= 1 for a solid block
 	 * also checks for goodies
-	 * There has to be a function for each direction
 	 */
-
 	function solidDown (self) {
 		var x = Math.round((self.x)/32);
 		var y = parseInt((self.y+44)/32);
